@@ -16,7 +16,7 @@
       border: none;
       cursor: pointer;
       font-size: 16px;
-      z-index: 10; /* Asegúrate de que esté encima de otros elementos */
+      z-index: 10;
     }
     #drawButton {
       top: 20px;
@@ -49,7 +49,7 @@
 
     // Creando la escena
     const scene = new THREE.Scene();
-    scene.background = new THREE.Color('black');
+    scene.background = new THREE.Color(0x2a3b4c);
 
     // Añadir cámara
     const camera = new THREE.PerspectiveCamera(
@@ -116,45 +116,63 @@
     }
 
     function onMouseMove(event) {
-      if (!isDrawing) return;
-      endPoint = getMousePosition(event.clientX, event.clientY);
-      if (lines.length > 0 && isDrawing) {
-        scene.remove(lines[lines.length - 1]);
-        lines.pop();
-      }
-      const lineMaterial = new THREE.LineBasicMaterial({ color: 0xff0000 });
-      const points = [startPoint, endPoint];
-      const lineGeometry = new THREE.BufferGeometry().setFromPoints(points);
-      const line = new THREE.Line(lineGeometry, lineMaterial);
-      scene.add(line);
-      lines.push(line);
+  if (!isDrawing || !drawingEnabled) return;
+
+  endPoint = getMousePosition(event.clientX, event.clientY);
+
+  // Eliminar la última línea en progreso, si existe
+  if (lines.length > 0 && lines[lines.length - 1].isTemporary) {
+    scene.remove(lines.pop());
+  }
+
+  // Crear una nueva línea con el material y geometría
+  const lineMaterial = new THREE.LineBasicMaterial({ color: 0xff0000 });
+  const points = [startPoint, endPoint];
+  const lineGeometry = new THREE.BufferGeometry().setFromPoints(points);
+  const line = new THREE.Line(lineGeometry, lineMaterial);
+
+  // Marcar esta línea como temporal
+  line.isTemporary = true;
+
+  // Añadir la nueva línea a la escena y guardarla en el array de líneas
+  scene.add(line);
+  lines.push(line);
+}
+
+function onMouseUp(event) {
+  if (isDrawing) {
+    isDrawing = false;
+
+    // Marcar la línea final como permanente
+    if (lines.length > 0) {
+      lines[lines.length - 1].isTemporary = false;
     }
 
-    function onMouseUp() {
-      if (isDrawing) {
-        isDrawing = false;
-        const length = startPoint.distanceTo(endPoint);
-        const loader = new THREE.FontLoader();
-        loader.load(
-          "https://threejs.org/examples/fonts/helvetiker_regular.typeface.json",
-          function (font) {
-            const textGeometry = new THREE.TextGeometry(length.toFixed(2) + ' units', {
-              font: font,
-              size: 0.1,
-              height: 0.02,
-            });
-            const textMaterial = new THREE.MeshBasicMaterial({ color: 0xffffff });
-            const text = new THREE.Mesh(textGeometry, textMaterial);
-            const midPoint = new THREE.Vector3().addVectors(startPoint, endPoint).multiplyScalar(0.5);
-            text.position.set(midPoint.x, midPoint.y + 0.1, midPoint.z);
-            scene.add(text);
-            texts.push(text);
-          }
-        );
-        drawingEnabled = false;
+    // Calcular la longitud de la línea
+    const length = startPoint.distanceTo(endPoint);
+    const loader = new THREE.FontLoader();
+    loader.load(
+      "https://threejs.org/examples/fonts/helvetiker_regular.typeface.json",
+      function (font) {
+        const textGeometry = new THREE.TextGeometry(length.toFixed(2) + ' units', {
+          font: font,
+          size: 0.1,
+          height: 0.02,
+        });
+        const textMaterial = new THREE.MeshBasicMaterial({ color: 0xffffff });
+        const text = new THREE.Mesh(textGeometry, textMaterial);
+        const midPoint = new THREE.Vector3().addVectors(startPoint, endPoint).multiplyScalar(0.5);
+        text.position.set(midPoint.x, midPoint.y + 0.1, midPoint.z);
+        scene.add(text);
+        texts.push(text); // Agregar el texto a la lista de textos
       }
-    }
+    );
 
+    // Desactivar el modo de dibujo
+    drawingEnabled = false;
+    document.getElementById("drawButton").style.backgroundColor = "#007bff"; // Restablece el color del botón de dibujar
+  }
+}
     function getMousePosition(x, y) {
       const rect = renderer.domElement.getBoundingClientRect();
       const mouseX = ((x - rect.left) / rect.width) * 2 - 1;
@@ -167,14 +185,21 @@
     }
 
     function clearLines() {
-      lines.forEach((line) => scene.remove(line));
-      texts.forEach((text) => scene.remove(text));
-      lines.length = 0;
-      texts.length = 0;
-    }
+  // Eliminar todas las líneas y textos de la escena
+  lines.forEach((line) => scene.remove(line));
+  texts.forEach((text) => scene.remove(text));
+
+  // Limpiar los arrays
+  lines.length = 0;
+  texts.length = 0;
+
+  // Restablecer el color del botón de dibujar
+  document.getElementById("drawButton").style.backgroundColor = "#007bff";
+}
 
     function enableDrawing() {
       drawingEnabled = true;
+      document.getElementById("drawButton").style.backgroundColor = "#28a745";
     }
 
     renderer.domElement.addEventListener("mousedown", onMouseDown);

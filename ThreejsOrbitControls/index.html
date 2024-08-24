@@ -27,11 +27,44 @@
         cursor: pointer;
         font-size: 16px;
       }
+      #coords-form {
+        position: absolute;
+        top: 10px;
+        right: 10px;
+        background-color: #f0f0f0;
+        padding: 10px;
+        border: 1px solid #ccc;
+        border-radius: 5px;
+      }
+      
     </style>
   </head>
   <body>
     <button id="drawButton">Dibujar Línea</button>
     <button id="clearButton">Borrar Líneas</button>
+    <input id="gridSizeInput" type="number" value="100" min="10" max="500" />
+    <!-- Agregar un botón para dibujar la línea -->
+    <!-- Agregar un botón para dibujar la línea -->
+    <button id="draw-button" onclick="drawLine()">Dibujar línea</button>
+
+    <!-- Inputs para las coordenadas de inicio y fin -->
+    <input id="start-x" type="number" value="0" />
+    <input id="start-y" type="number" value="0" />
+    <input id="start-z" type="number" value="0" />
+
+    <input id="end-x" type="number" value="0" />
+    <input id="end-y" type="number" value="0" />
+    <input id="end-z" type="number" value="0" />
+
+    
+    
+    
+    
+    <!-- Contenedor para la escena de Three.js -->
+    <div id="scene-container"></div>
+
+    <!-- Agregar un botón para dibujar la línea -->
+
 
     <script type="module">
       import * as THREE from "./three.module.js";
@@ -41,7 +74,7 @@
       var scene = new THREE.Scene();
       scene.background = new THREE.Color(0x2a3b4c);
       var floorGeometry = new THREE.PlaneGeometry(100, 100); // Puedes ajustar el tamaño según lo que necesites
-      var floorMaterial = new THREE.MeshBasicMaterial({ color: 0x808080, side: THREE.DoubleSide }); // Color gris para el piso
+      var floorMaterial = new THREE.MeshBasicMaterial({ color: 'black', side: THREE.DoubleSide }); // Color gris para el piso
 
       var floor = new THREE.Mesh(floorGeometry, floorMaterial);
 
@@ -57,7 +90,80 @@
 
 
 
+      // Función para dibujar una línea en 3D
+      function drawLine() {
+        const startX = parseFloat(document.getElementById('start-x').value);
+        const startY = parseFloat(document.getElementById('start-y').value);
+        const startZ = parseFloat(document.getElementById('start-z').value);
 
+        const endX = parseFloat(document.getElementById('end-x').value);
+        const endY = parseFloat(document.getElementById('end-y').value);
+        const endZ = parseFloat(document.getElementById('end-z').value);
+
+        const lineMaterial = new THREE.LineBasicMaterial({ color: 0xff0000 });
+        const points = [
+          new THREE.Vector3(startX, startY, startZ),
+          new THREE.Vector3(endX, endY, endZ)
+        ];
+        const lineGeometry = new THREE.BufferGeometry().setFromPoints(points);
+        const line = new THREE.Line(lineGeometry, lineMaterial);
+        new THREE.Vector3(x, y, z);
+
+        // Actualizar la grilla horizontal (azul)
+        const gridSize = 8;
+        const gridHelperX = new THREE.GridHelper(gridSize, gridSize);
+        gridHelperX.material.opacity = 0.5;
+        gridHelperX.material.transparent = true;
+        // gridHelperX.rotation.z = Math.PI / 2; // Rotar la grilla para que sea horizontal
+        scene.add(gridHelperX);
+
+        scene.add(line);
+      }
+      
+
+
+
+      // ================================ grilla
+
+     
+      // Crear grilla en el suelo
+      var gridHelper = new THREE.GridHelper(8, 8); // Tamaño de la grilla (ancho, divisiones)
+      gridHelper.material.opacity = 0.5;
+      gridHelper.material.transparent = true;
+      scene.add(gridHelper);
+      
+
+      // Agregar controles para modificar el tamaño de la grilla
+      var gridSizeInput = document.getElementById("gridSizeInput");
+      gridSizeInput.addEventListener("input", function() {
+        var gridSize = parseInt(gridSizeInput.value);
+        gridGeometry.parameters.width = gridSize;
+        gridGeometry.parameters.height = gridSize;
+        gridGeometry.parameters.widthSegments = gridSize / 10;
+        gridGeometry.parameters.heightSegments = gridSize / 10;
+        grid.geometry = gridGeometry;
+      });
+
+
+      // ======= grilla vertical
+
+      // Crear grilla vertical en el eje X
+      var gridHelperX = new THREE.GridHelper(8, 8); // Tamaño de la grilla (ancho, divisiones)
+      gridHelperX.material.opacity = 0.5;
+      gridHelperX.material.transparent = true;
+      gridHelperX.rotation.z = Math.PI / 2; // Rotar la grilla para que sea vertical en el eje X
+      scene.add(gridHelperX);
+
+      // Crear grilla vertical en el eje Z
+      var gridHelperZ = new THREE.GridHelper(8, 8); // Tamaño de la grilla (ancho, divisiones)
+      gridHelperZ.material.opacity = 0.5;
+      gridHelperZ.material.transparent = true;
+      gridHelperZ.rotation.x = Math.PI / 2; // Rotar la grilla para que sea vertical en el eje Z
+      scene.add(gridHelperZ);
+
+
+
+      // ...
 
 
       // Añadir cámara

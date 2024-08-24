@@ -133,6 +133,30 @@
 
         // Añadimos la línea a la lista de líneas
         lines.push(line); 
+
+         // Determinar el color de la línea basado en el eje más grande
+        let colo, linewidth;
+
+        var lineMaterial = new THREE.LineBasicMaterial({ color: 0xff0000 });
+
+        var lineMaterial = new THREE.LineBasicMaterial({ color: color });
+
+        // Crear la geometría de la línea
+        var lineGeometry = new THREE.BufferGeometry().setFromPoints(points);
+
+        // Crear la línea y asignarle el material y la geometría
+        var line = new THREE.Line(lineGeometry, lineMaterial);
+        
+        // let color, linewidth;
+        // ... (tu lógica para determinar el color y ancho)
+
+        // Crear el material de la línea
+        var lineMaterial = new THREE.LineBasicMaterial({
+            color: color,
+            linewidth: linewidth,
+            linecap: 'round',
+            linejoin: 'round'
+        });
       }
 
       // Función para completar el dibujo de la línea
@@ -190,6 +214,32 @@
         var pos = camera.position.clone().add(vector.multiplyScalar(distance));
 
         return pos;
+
+        let color;
+        if (Math.abs(pos.x) > Math.abs(pos.y) && Math.abs(pos.x) > Math.abs(pos.z)) {
+            color = 0xff0000; // Rojo para el eje X
+        } else if (Math.abs(pos.y) > Math.abs(pos.x) && Math.abs(pos.y) > Math.abs(pos.z)) {
+            color = 0x00ff00; // Verde para el eje Y
+        } else {
+            color = 0x0000ff; // Azul para el eje Z
+        }
+
+        // Crear un rayo desde la cámara hacia el punto de clic
+    var raycaster = new THREE.Raycaster();
+    raycaster.setFromCamera(vector, camera);
+
+    // Crear un plano para la intersección (por ejemplo, el plano XY)
+    var plane = new THREE.Plane(new THREE.Vector3(0, 0, 1), 0);
+
+    // Calcular la intersección del rayo con el plano
+    var intersects = raycaster.intersectObject(plane);
+
+    if (intersects.length > 0) {
+        return intersects[0].point;
+    } else {
+        return null;
+    }
+
       }
 
       // Función para borrar todas las líneas y textos

@@ -36,7 +36,7 @@
     <script type="module">
       import * as THREE from "./three.module.js";
       import { OrbitControls } from "./OrbitControls.js";
-
+      
       // Creando la escena
       var scene = new THREE.Scene();
       scene.background = new THREE.Color(0x2a3b4c);
@@ -45,12 +45,20 @@
 
       var floor = new THREE.Mesh(floorGeometry, floorMaterial);
 
-// Colocar el plano en la posición correcta
-floor.rotation.x = - Math.PI / 2; // Rotar el plano para que esté horizontal
-floor.position.y = -1; // Puedes ajustar la altura según sea necesario
-/Nilton/
+      // Colocar el plano en la posición correcta
+      floor.rotation.x = - Math.PI / 2; // Rotar el plano para que esté horizontal
+      floor.position.y = -1; // Puedes ajustar la altura según sea necesario
 
-scene.add(floor);
+      scene.add(floor);
+
+
+      const axesHelper = new THREE.AxesHelper(10); // Ajusta el tamaño del eje según sea necesario
+      scene.add(axesHelper);
+
+
+
+
+
 
       // Añadir cámara
       var camera = new THREE.PerspectiveCamera(
@@ -125,65 +133,62 @@ scene.add(floor);
 
       // Función para trazar la línea en movimiento del ratón
       function onMouseMove(event) {
-        if (!isDrawing) return;
+        if (!isDrawing || !drawingEnabled) return;
 
         endPoint = getMousePosition(event.clientX, event.clientY);
 
-        // Si ya estamos dibujando una línea, eliminamos la línea temporal previa
-        if (lines.length > 0 && isDrawing) {
-          scene.remove(lines[lines.length - 1]); 
-          lines.pop();
+        // Eliminar la última línea en progreso, si existe
+        if (lines.length > 0 && lines[lines.length - 1].isTemporary) {
+          scene.remove(lines.pop());
         }
 
-        var lineMaterial = new THREE.LineBasicMaterial({ color: 0xff0000 });
-        var points = [startPoint, endPoint];
+        // Crear una nueva línea con el material y geometría
+        const lineMaterial = new THREE.LineBasicMaterial({ color: 0xff0000 });
+        const points = [startPoint, endPoint];
+        const lineGeometry = new THREE.BufferGeometry().setFromPoints(points);
+        const line = new THREE.Line(lineGeometry, lineMaterial);
 
-        var lineGeometry = new THREE.BufferGeometry().setFromPoints(points);
-        var line = new THREE.Line(lineGeometry, lineMaterial);
+        // Marcar esta línea como temporal
+        line.isTemporary = true;
+
+        // Añadir la nueva línea a la escena y guardarla en el array de líneas
         scene.add(line);
-
-        // Añadimos la línea a la lista de líneas
-        lines.push(line); 
+        lines.push(line);
       }
 
       // Función para completar el dibujo de la línea
-      function onMouseUp() {
+      function onMouseUp(event) {
         if (isDrawing) {
           isDrawing = false;
 
-          // Calcular la longitud de la línea
-          var length = startPoint.distanceTo(endPoint);
+          // Marcar la línea final como permanente
+          if (lines.length > 0) {
+            lines[lines.length - 1].isTemporary = false;
+          }
 
-          // Añadir el texto para mostrar la longitud de la línea
-          var loader = new THREE.FontLoader();
+          // Calcular la longitud de la línea
+          const length = startPoint.distanceTo(endPoint);
+          const loader = new THREE.FontLoader();
           loader.load(
             "https://threejs.org/examples/fonts/helvetiker_regular.typeface.json",
             function (font) {
-              var textGeometry = new THREE.TextGeometry(length.toFixed(2), {
+              const textGeometry = new THREE.TextGeometry(length.toFixed(2) + ' units', {
                 font: font,
                 size: 0.1,
                 height: 0.02,
               });
-
-              var textMaterial = new THREE.MeshBasicMaterial({
-                color: 0xffffff,
-              });
-              var text = new THREE.Mesh(textGeometry, textMaterial);
-
-              // Ajusta la posición del texto en el centro de la línea
-              var midPoint = new THREE.Vector3().addVectors(
-                startPoint,
-                endPoint
-              ).multiplyScalar(0.5);
-
+              const textMaterial = new THREE.MeshBasicMaterial({ color: 0xffffff });
+              const text = new THREE.Mesh(textGeometry, textMaterial);
+              const midPoint = new THREE.Vector3().addVectors(startPoint, endPoint).multiplyScalar(0.5);
               text.position.set(midPoint.x, midPoint.y + 0.1, midPoint.z);
               scene.add(text);
               texts.push(text); // Agregar el texto a la lista de textos
             }
           );
 
-          // Desactivar el dibujo después de completar la línea
+          // Desactivar el modo de dibujo
           drawingEnabled = false;
+          document.getElementById("drawButton").style.backgroundColor = "#007bff"; // Restablece el color del botón de dibujar
         }
       }
 
@@ -205,10 +210,16 @@ scene.add(floor);
 
       // Función para borrar todas las líneas y textos
       function clearLines() {
+        // Eliminar todas las líneas y textos de la escena
         lines.forEach((line) => scene.remove(line));
         texts.forEach((text) => scene.remove(text));
-        lines = [];
-        texts = [];
+
+        // Limpiar los arrays
+        lines.length = 0;
+        texts.length = 0;
+
+        // Restablecer el color del botón de dibujar
+        document.getElementById("drawButton").style.backgroundColor = "#007bff";
       }
 
       // Función para habilitar el dibujo de la línea

@@ -1,229 +1,202 @@
 <!DOCTYPE html>
 <html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Three.js Line Drawing</title>
-    <style>
-      #drawButton {
-        position: absolute;
-        top: 20px;
-        left: 20px;
-        padding: 10px 20px;
-        background-color: #007bff;
-        color: white;
-        border: none;
-        cursor: pointer;
-        font-size: 16px;
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Three.js Line Drawing</title>
+  <style>
+    body {
+      margin: 0;
+      overflow: hidden;
+    }
+    #drawButton, #clearButton, #toggleControlsButton {
+      position: absolute;
+      padding: 10px 20px;
+      color: white;
+      border: none;
+      cursor: pointer;
+      font-size: 16px;
+      z-index: 10; /* Asegúrate de que esté encima de otros elementos */
+    }
+    #drawButton {
+      top: 20px;
+      left: 20px;
+      background-color: #007bff;
+    }
+    #clearButton {
+      top: 20px;
+      left: 150px;
+      background-color: #ff0000;
+    }
+    #toggleControlsButton {
+      top: 60px;
+      left: 20px;
+      background-color: #28a745;
+    }
+    #toggleControlsButton.active {
+      background-color: #dc3545;
+    }
+  </style>
+</head>
+<body>
+  <button id="drawButton">Dibujar Línea</button>
+  <button id="clearButton">Borrar Líneas</button>
+  <button id="toggleControlsButton">Activar Controles</button>
+
+  <script type="module">
+    import * as THREE from "./three.module.js";
+    import { OrbitControls } from "./OrbitControls.js";
+
+    // Creando la escena
+    const scene = new THREE.Scene();
+    scene.background = new THREE.Color('black');
+
+    // Añadir cámara
+    const camera = new THREE.PerspectiveCamera(
+      75,
+      window.innerWidth / window.innerHeight,
+      0.1,
+      1000
+    );
+    camera.position.z = 5;
+
+    // Renderer
+    const renderer = new THREE.WebGLRenderer();
+    renderer.setSize(window.innerWidth, window.innerHeight);
+    document.body.appendChild(renderer.domElement);
+
+    // Añadir controles orbitales
+    const controls = new OrbitControls(camera, renderer.domElement);
+    controls.minDistance = 3;
+    controls.maxDistance = 10;
+    controls.enableDamping = true;
+    controls.dampingFactor = 0.5;
+    controls.maxPolarAngle = Math.PI;
+    controls.screenSpacePanning = true;
+
+    let areControlsEnabled = false;
+    function updateControls() {
+      controls.enabled = areControlsEnabled;
+      document.getElementById("toggleControlsButton").classList.toggle("active", areControlsEnabled);
+    }
+
+    function toggleControls(event) {
+      event.stopPropagation();
+      areControlsEnabled = !areControlsEnabled;
+      updateControls();
+    }
+
+    document.getElementById("toggleControlsButton").addEventListener("click", toggleControls);
+
+    // Añadir geometría del cubo (solo para referencia visual)
+    const cubeGeometry = new THREE.BoxGeometry();
+    const cubeMaterial = new THREE.MeshBasicMaterial({ color: 0x00ff00, wireframe: true });
+    const cube = new THREE.Mesh(cubeGeometry, cubeMaterial);
+    scene.add(cube);
+
+    // Añadir piso
+    const floorGeometry = new THREE.PlaneGeometry(100, 100);
+    const floorMaterial = new THREE.MeshBasicMaterial({ color: 0x808080, side: THREE.DoubleSide });
+    const floor = new THREE.Mesh(floorGeometry, floorMaterial);
+    floor.rotation.x = - Math.PI / 2;
+    floor.position.y = -1;
+    scene.add(floor);
+
+    // Variables para las líneas y los textos
+    const lines = [];
+    const texts = [];
+    let startPoint, endPoint;
+    let isDrawing = false;
+    let drawingEnabled = false;
+
+    function onMouseDown(event) {
+      if (!drawingEnabled) return;
+      isDrawing = true;
+      startPoint = getMousePosition(event.clientX, event.clientY);
+    }
+
+    function onMouseMove(event) {
+      if (!isDrawing) return;
+      endPoint = getMousePosition(event.clientX, event.clientY);
+      if (lines.length > 0 && isDrawing) {
+        scene.remove(lines[lines.length - 1]);
+        lines.pop();
       }
-      #clearButton {
-        position: absolute;
-        top: 20px;
-        left: 150px;
-        padding: 10px 20px;
-        background-color: #ff0000;
-        color: white;
-        border: none;
-        cursor: pointer;
-        font-size: 16px;
+      const lineMaterial = new THREE.LineBasicMaterial({ color: 0xff0000 });
+      const points = [startPoint, endPoint];
+      const lineGeometry = new THREE.BufferGeometry().setFromPoints(points);
+      const line = new THREE.Line(lineGeometry, lineMaterial);
+      scene.add(line);
+      lines.push(line);
+    }
+
+    function onMouseUp() {
+      if (isDrawing) {
+        isDrawing = false;
+        const length = startPoint.distanceTo(endPoint);
+        const loader = new THREE.FontLoader();
+        loader.load(
+          "https://threejs.org/examples/fonts/helvetiker_regular.typeface.json",
+          function (font) {
+            const textGeometry = new THREE.TextGeometry(length.toFixed(2) + ' units', {
+              font: font,
+              size: 0.1,
+              height: 0.02,
+            });
+            const textMaterial = new THREE.MeshBasicMaterial({ color: 0xffffff });
+            const text = new THREE.Mesh(textGeometry, textMaterial);
+            const midPoint = new THREE.Vector3().addVectors(startPoint, endPoint).multiplyScalar(0.5);
+            text.position.set(midPoint.x, midPoint.y + 0.1, midPoint.z);
+            scene.add(text);
+            texts.push(text);
+          }
+        );
+        drawingEnabled = false;
       }
-    </style>
-  </head>
-  <body>
-    <button id="drawButton">Dibujar Línea</button>
-    <button id="clearButton">Borrar Líneas</button>
+    }
 
-    <script type="module">
-      import * as THREE from "./three.module.js";
-      import { OrbitControls } from "./OrbitControls.js";
+    function getMousePosition(x, y) {
+      const rect = renderer.domElement.getBoundingClientRect();
+      const mouseX = ((x - rect.left) / rect.width) * 2 - 1;
+      const mouseY = -((y - rect.top) / rect.height) * 2 + 1;
+      const vector = new THREE.Vector3(mouseX, mouseY, 0.5);
+      vector.unproject(camera);
+      vector.sub(camera.position).normalize();
+      const distance = -camera.position.z / vector.z;
+      return camera.position.clone().add(vector.multiplyScalar(distance));
+    }
 
-      // Creando la escena
-      var scene = new THREE.Scene();
-      scene.background = new THREE.Color(0x2a3b4c);
+    function clearLines() {
+      lines.forEach((line) => scene.remove(line));
+      texts.forEach((text) => scene.remove(text));
+      lines.length = 0;
+      texts.length = 0;
+    }
 
-      // Añadir cámara
-      var camera = new THREE.PerspectiveCamera(
-        75,
-        window.innerWidth / window.innerHeight,
-        0.1,
-        1000
-      );
-      camera.position.z = 5;
+    function enableDrawing() {
+      drawingEnabled = true;
+    }
 
-      // Renderer
-      var renderer = new THREE.WebGLRenderer();
+    renderer.domElement.addEventListener("mousedown", onMouseDown);
+    renderer.domElement.addEventListener("mousemove", onMouseMove);
+    renderer.domElement.addEventListener("mouseup", onMouseUp);
+
+    document.getElementById("drawButton").addEventListener("click", enableDrawing);
+    document.getElementById("clearButton").addEventListener("click", clearLines);
+
+    window.addEventListener('resize', () => {
+      camera.aspect = window.innerWidth / window.innerHeight;
+      camera.updateProjectionMatrix();
       renderer.setSize(window.innerWidth, window.innerHeight);
-      document.body.appendChild(renderer.domElement);
+    });
 
-      // Añadir controles orbitales
-      var controls = new OrbitControls(camera, renderer.domElement);
-      controls.minDistance = 3;
-      controls.maxDistance = 10;
-      controls.enableDamping = true;
-      controls.dampingFactor = 0.5;
-      controls.maxPolarAngle = Math.PI;
-      controls.screenSpacePanning = true;
+    const animate = function () {
+      requestAnimationFrame(animate);
+      controls.update();
+      renderer.render(scene, camera);
+    };
 
-      // Variables para controlar el estado de la tecla Control
-      let isControlPressed = false;
-
-      // Función para habilitar/deshabilitar los controles de acuerdo a la tecla Control
-      function updateControls() {
-        controls.enabled = isControlPressed;
-      }
-
-      // Evento para detectar cuándo se presiona la tecla Control
-      window.addEventListener('keydown', (event) => {
-        if (event.key === 'Control') {
-          isControlPressed = true;
-          updateControls();
-        }
-      });
-
-      // Evento para detectar cuándo se suelta la tecla Control
-      window.addEventListener('keyup', (event) => {
-        if (event.key === 'Control') {
-          isControlPressed = false;
-          updateControls();
-        }
-      });
-
-      // Añadir geometría del cubo (solo para referencia visual)
-      var cubeGeometry = new THREE.BoxGeometry();
-      var cubeMaterial = new THREE.MeshBasicMaterial({
-        color: 0x00ff00,
-        wireframe: true,
-      });
-      var cube = new THREE.Mesh(cubeGeometry, cubeMaterial);
-      scene.add(cube);
-
-      // Variables para las líneas y los textos
-      var lines = []; // Almacena todas las líneas
-      var texts = []; // Almacena todos los textos de longitud
-      var startPoint, endPoint;
-      var isDrawing = false;
-      var drawingEnabled = false; // Estado para permitir el dibujo
-
-      // Función para iniciar el dibujo de la línea
-      function onMouseDown(event) {
-        if (!drawingEnabled) return; // Solo dibuja si está habilitado
-
-        isDrawing = true;
-        startPoint = getMousePosition(event.clientX, event.clientY);
-      }
-
-      // Función para trazar la línea en movimiento del ratón
-      function onMouseMove(event) {
-        if (!isDrawing) return;
-
-        endPoint = getMousePosition(event.clientX, event.clientY);
-
-        // Si ya estamos dibujando una línea, eliminamos la línea temporal previa
-        if (lines.length > 0 && isDrawing) {
-          scene.remove(lines[lines.length - 1]); 
-          lines.pop();
-        }
-
-        var lineMaterial = new THREE.LineBasicMaterial({ color: 0xff0000 });
-        var points = [startPoint, endPoint];
-
-        var lineGeometry = new THREE.BufferGeometry().setFromPoints(points);
-        var line = new THREE.Line(lineGeometry, lineMaterial);
-        scene.add(line);
-
-        // Añadimos la línea a la lista de líneas
-        lines.push(line); 
-      }
-
-      // Función para completar el dibujo de la línea
-      function onMouseUp() {
-        if (isDrawing) {
-          isDrawing = false;
-
-          // Calcular la longitud de la línea
-          var length = startPoint.distanceTo(endPoint);
-
-          // Añadir el texto para mostrar la longitud de la línea
-          var loader = new THREE.FontLoader();
-          loader.load(
-            "https://threejs.org/examples/fonts/helvetiker_regular.typeface.json",
-            function (font) {
-              var textGeometry = new THREE.TextGeometry(length.toFixed(2), {
-                font: font,
-                size: 0.1,
-                height: 0.02,
-              });
-
-              var textMaterial = new THREE.MeshBasicMaterial({
-                color: 0xffffff,
-              });
-              var text = new THREE.Mesh(textGeometry, textMaterial);
-
-              // Ajusta la posición del texto en el centro de la línea
-              var midPoint = new THREE.Vector3().addVectors(
-                startPoint,
-                endPoint
-              ).multiplyScalar(0.5);
-
-              text.position.set(midPoint.x, midPoint.y + 0.1, midPoint.z);
-              scene.add(text);
-              texts.push(text); // Agregar el texto a la lista de textos
-            }
-          );
-
-          // Desactivar el dibujo después de completar la línea
-          drawingEnabled = false;
-        }
-      }
-
-      // Función para obtener la posición del ratón en el espacio 3D
-      function getMousePosition(x, y) {
-        var rect = renderer.domElement.getBoundingClientRect();
-        var mouseX = ((x - rect.left) / rect.width) * 2 - 1;
-        var mouseY = -((y - rect.top) / rect.height) * 2 + 1;
-
-        var vector = new THREE.Vector3(mouseX, mouseY, 0.5);
-        vector.unproject(camera);
-        vector.sub(camera.position).normalize();
-
-        var distance = -camera.position.z / vector.z;
-        var pos = camera.position.clone().add(vector.multiplyScalar(distance));
-
-        return pos;
-      }
-
-      // Función para borrar todas las líneas y textos
-      function clearLines() {
-        lines.forEach((line) => scene.remove(line));
-        texts.forEach((text) => scene.remove(text));
-        lines = [];
-        texts = [];
-      }
-
-      // Función para habilitar el dibujo de la línea
-      function enableDrawing() {
-        drawingEnabled = true;
-      }
-
-      // Eventos del ratón
-      renderer.domElement.addEventListener("mousedown", onMouseDown);
-      renderer.domElement.addEventListener("mousemove", onMouseMove);
-      renderer.domElement.addEventListener("mouseup", onMouseUp);
-
-      // Evento del botón para habilitar el dibujo de la línea
-      document.getElementById("drawButton").addEventListener("click", enableDrawing);
-
-      // Evento del botón para borrar las líneas y textos
-      document.getElementById("clearButton").addEventListener("click", clearLines);
-
-      // Animación
-      var animate = function () {
-        requestAnimationFrame(animate);
-        controls.update();
-        renderer.render(scene, camera);
-      };
-
-      animate();
-    </script>
-  </body>
+    animate();
+  </script>
+</body>
 </html>

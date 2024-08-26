@@ -154,12 +154,24 @@
     let drawingEnabled = false;
 
     function onMouseDown(event) {
-      if (!drawingEnabled) return;
-      isDrawing = true;
-      const { x, y, z } = getMousePosition(event.clientX, event.clientY, event.clientZ);
-      startPoint = new THREE.Vector3(x, y, z);
-      console.log(startPoint)
+    if (!drawingEnabled) return;
+    isDrawing = true;
+
+    // Normaliza las coordenadas del mouse
+    mouse.x = (event.clientX / window.innerWidth) * 2 - 1;
+    mouse.y = -(event.clientY / window.innerHeight) * 2 + 1;
+
+    // Actualiza el raycaster con la cámara y las coordenadas del mouse
+    raycaster.setFromCamera(mouse, camera);
+
+    // Intersectar con el plano del suelo para obtener coordenadas X, Y y Z en 3D
+    const intersects = raycaster.intersectObjects([floor, boundaryCube], true);
+
+    if (intersects.length > 0) {
+        startPoint = intersects[0].point;  // Utiliza el primer punto de intersección
+        console.log(startPoint);  // Esto mostrará las coordenadas X, Y, Z correctas
     }
+}
 
     function onMouseMove(event) {
       if (!isDrawing || !drawingEnabled) return;

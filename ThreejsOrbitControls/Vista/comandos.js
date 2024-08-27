@@ -29,6 +29,77 @@ const boundaryMaterial = new THREE.MeshBasicMaterial({
 const boundaryCube = new THREE.Mesh(boundaryGeometry, boundaryMaterial);
 scene.add(boundaryCube);
 
+// Función para crear una grilla externa
+function createExternalGrid(size, divisions, colorCenterLine, colorGrid) {
+  const gridHelper = new THREE.GridHelper(size, divisions, colorCenterLine, colorGrid);
+  gridHelper.position.y = -halfSize;
+  return gridHelper;
+}
+
+/// Función para crear grillas internas
+function createInternalGrid(size, divisions, colorCenterLine, colorGrid, position, rotation) {
+  const gridHelper = new THREE.GridHelper(size, divisions, colorCenterLine, colorGrid);
+  gridHelper.position.copy(position);
+  gridHelper.rotation.copy(rotation);
+  return gridHelper;
+}
+
+// Crear grillas internas para cubrir el interior del cubo
+const internalGridSize = size;
+const internalGridDivisions = 10; // Ajusta según necesites
+
+// Crear grillas en diferentes posiciones y orientaciones
+const internalGrids = [];
+
+// Grillas en el plano XY
+const gridXY1 = createInternalGrid(internalGridSize, internalGridDivisions, 0x000000, '#cccccc', 
+  new THREE.Vector3(0, -size / 2, 0), new THREE.Euler(-Math.PI / 2, 0, 0));
+scene.add(gridXY1);
+internalGrids.push(gridXY1);
+
+const gridXY2 = createInternalGrid(internalGridSize, internalGridDivisions, 0x000000, '#cccccc', 
+  new THREE.Vector3(0, size / 2, 0), new THREE.Euler(-Math.PI / 2, 0, 0));
+scene.add(gridXY2);
+internalGrids.push(gridXY2);
+
+// Grillas en el plano XZ
+const gridXZ1 = createInternalGrid(internalGridSize, internalGridDivisions, 0x000000, '#cccccc', 
+  new THREE.Vector3(0, 0, -size / 2), new THREE.Euler(0, 0, 0));
+scene.add(gridXZ1);
+internalGrids.push(gridXZ1);
+
+const gridXZ2 = createInternalGrid(internalGridSize, internalGridDivisions, 0x000000, '#cccccc', 
+  new THREE.Vector3(0, 0, size / 2), new THREE.Euler(0, 0, 0));
+scene.add(gridXZ2);
+internalGrids.push(gridXZ2);
+
+// Grillas en el plano YZ
+const gridYZ1 = createInternalGrid(internalGridSize, internalGridDivisions, 0x000000, '#cccccc', 
+  new THREE.Vector3(-size / 2, 0, 0), new THREE.Euler(0, -Math.PI / 2, 0));
+scene.add(gridYZ1);
+internalGrids.push(gridYZ1);
+
+const gridYZ2 = createInternalGrid(internalGridSize, internalGridDivisions, 0x000000, '#cccccc', 
+  new THREE.Vector3(size / 2, 0, 0), new THREE.Euler(0, -Math.PI / 2, 0));
+scene.add(gridYZ2);
+internalGrids.push(gridYZ2);
+// Variable para controlar la visibilidad de las grillas internas
+let areInternalGridsVisible = true;
+
+// Función para alternar la visibilidad de las grillas internas
+function toggleInternalGridsVisibility() {
+  areInternalGridsVisible = !areInternalGridsVisible;
+  internalGrids.forEach(grid => grid.visible = areInternalGridsVisible);
+  document.getElementById("toggleInternalGridsButton").classList.toggle("active", areInternalGridsVisible);
+}
+
+// Agregar evento al botón de grillas internas
+document.getElementById("toggleInternalGridsButton").addEventListener("click", toggleInternalGridsVisibility);
+
+// Inicialmente se muestran las grillas internas
+internalGrids.forEach(grid => grid.visible = areInternalGridsVisible);
+document.getElementById("toggleInternalGridsButton").classList.toggle("active", areInternalGridsVisible);
+
 // Configurar el piso
 const floorSize = Math.max(size * 2, 1000);
 const floorGeometry = new THREE.PlaneGeometry(floorSize, floorSize);
@@ -200,7 +271,7 @@ function onMouseUp(event) {
             size: 0.1,
             height: 0.02,
           });
-          const textMaterial = new THREE.MeshBasicMaterial({ color: 0xffffff });
+          const textMaterial = new THREE.MeshBasicMaterial({ color: '#000000' });
           const textMesh = new THREE.Mesh(textGeometry, textMaterial);
           textMesh.position.copy(position);
           textMesh.lookAt(camera.position);
@@ -255,7 +326,7 @@ function drawLineFromCode() {
       end.y >= -halfSize && end.y <= halfSize &&
       end.z >= -halfSize && end.z <= halfSize
     ) {
-      const lineMaterial = new THREE.LineBasicMaterial({ color: 0xff0000 });
+      const lineMaterial = new THREE.LineBasicMaterial({ color: '0xff0000' });
       const points = [start, end];
       const lineGeometry = new THREE.BufferGeometry().setFromPoints(points);
       const line = new THREE.Line(lineGeometry, lineMaterial);
@@ -271,7 +342,7 @@ function drawLineFromCode() {
               size: 0.1,
               height: 0.02,
             });
-            const textMaterial = new THREE.MeshBasicMaterial({ color: 0xffffff });
+            const textMaterial = new THREE.MeshBasicMaterial({ color: '#0xff0000' });
             const textMesh = new THREE.Mesh(textGeometry, textMaterial);
             textMesh.position.copy(position);
             textMesh.lookAt(camera.position);
@@ -289,6 +360,23 @@ function drawLineFromCode() {
     alert("Ingrese las coordenadas en el formato correcto: x1,y1,z1,x2,y2,z2");
   }
 }
+
+// Variable para controlar la visibilidad de la grilla
+let isGridVisible = true;
+
+// Función para alternar la visibilidad de la grilla
+function toggleGridVisibility() {
+  isGridVisible = !isGridVisible;
+  gridHelper.visible = isGridVisible;
+  document.getElementById("toggleGridButton").classList.toggle("active", isGridVisible);
+}
+
+// Agregar evento al botón de grilla
+document.getElementById("toggleGridButton").addEventListener("click", toggleGridVisibility);
+
+// Inicialmente se muestra la grilla
+gridHelper.visible = isGridVisible;
+document.getElementById("toggleGridButton").classList.toggle("active", isGridVisible);
 
 renderer.domElement.addEventListener("mousedown", onMouseDown);
 renderer.domElement.addEventListener("mousemove", onMouseMove);

@@ -68,6 +68,21 @@
     const scene = new THREE.Scene();
     scene.background = new THREE.Color(0x2a3b4c);
 
+    // Crear el ayudante de grilla (GridHelper) con colores personalizados
+const gridSize = size +10;
+const divisions = size +10;
+const colorCenterLine = 0x000000; // Color de las líneas del centro (ejes principales)
+const colorGrid = 0x000000; // Color de las líneas de la grilla
+
+// Crear la grilla
+const gridHelper = new THREE.GridHelper(gridSize, divisions, colorCenterLine, colorGrid);
+
+// Ajustar la posición de la grilla para que esté pegada al piso
+gridHelper.position.y = -halfSize;
+
+// Añadir la grilla a la escena
+scene.add(gridHelper);
+
     // Añadir cámara
     const camera = new THREE.PerspectiveCamera(
       75,
@@ -123,24 +138,50 @@
     const floor = new THREE.Mesh(floorGeometry, floorMaterial);
     floor.rotation.x = -Math.PI / 2;
     floor.position.y = -halfSize;
-    scene.add(floor);
+    scene.add(floor);// Crear ejes de coordenadas visibles en una esquina del cubo
+// Crear ejes de coordenadas visibles en una esquina del cubo
+function createAxisLine(start, end, color) {
+  const points = [start, end];
+  const geometry = new THREE.BufferGeometry().setFromPoints(points);
+  const material = new THREE.LineBasicMaterial({ color: color });
+  return new THREE.Line(geometry, material);
+}
 
-    // Crear ejes de coordenadas visibles en una esquina del cubo
-    function createAxisLine(start, end, color) {
-      const points = [start, end];
-      const geometry = new THREE.BufferGeometry().setFromPoints(points);
-      const material = new THREE.LineBasicMaterial({ color: color });
-      return new THREE.Line(geometry, material);
-    }
+// Define el tamaño del cubo y las coordenadas de la esquina
+const cornerX = -size / 2;  // Coordenada X de la esquina
+const cornerY = -size / 2;  // Coordenada Y de la esquina
+const cornerZ = -size / 2;  // Coordenada Z de la esquina
 
-    const axisX = createAxisLine(new THREE.Vector3(-size, 0, 0), new THREE.Vector3(size, 0, 0), 0xff0000);
-    const axisY = createAxisLine(new THREE.Vector3(0, -size, 0), new THREE.Vector3(0, size, 0), 0x00ff00);
-    const axisZ = createAxisLine(new THREE.Vector3(0, 0, -size), new THREE.Vector3(0, 0, size), 0x0000ff);
+// Define el tamaño de los ejes y el margen de separación
+const axisLength = size * 1.5; // Longitud de los ejes (extendidos más allá del cubo)
+const offset = 2; // Distancia de separación desde la esquina del cubo
 
-    scene.add(axisX);
-    scene.add(axisY);
-    scene.add(axisZ);
+// Crear los ejes, asegurando que el offset se aplique correctamente
+const axisX = createAxisLine(
+  new THREE.Vector3(cornerX - offset, cornerY, cornerZ), 
+  new THREE.Vector3(cornerX + axisLength, cornerY, cornerZ), 
+  0xff0000
+);
+const axisY = createAxisLine(
+  new THREE.Vector3(cornerX, cornerY - offset, cornerZ), 
+  new THREE.Vector3(cornerX, cornerY + axisLength, cornerZ), 
+  0x00ff00
+);
+const axisZ = createAxisLine(
+  new THREE.Vector3(cornerX, cornerY, cornerZ - offset), 
+  new THREE.Vector3(cornerX, cornerY, cornerZ + axisLength), 
+  0x0000ff
+);
 
+// Añadir los ejes a la escena
+scene.add(axisX);
+scene.add(axisY);
+scene.add(axisZ);
+
+// Añadir los ejes a la escena
+scene.add(axisX);
+scene.add(axisY);
+scene.add(axisZ);
     // Configurar Raycaster
     const raycaster = new THREE.Raycaster();
     const mouse = new THREE.Vector2();

@@ -12,13 +12,13 @@ scene.background = new THREE.Color('#b3deff');
 // Crear la grilla
 const gridSize = 50;
 const divisions = 50;
-const colorCenterLine = 0x000000; // Color de las líneas del centro (ejes principales)
-const colorGrid = '#e4e4e4'; // Color de las líneas de la grilla
+const colorCenterLine = 0x000000;
+const colorGrid = '#e4e4e4';
 const gridHelper = new THREE.GridHelper(gridSize, divisions, colorCenterLine, colorGrid);
 gridHelper.position.y = -halfSize;
 scene.add(gridHelper);
 
-// Crear el cubo de límites basado en la entrada del usuario
+// Crear el cubo de límites
 const boundaryGeometry = new THREE.BoxGeometry(size, size, size);
 const boundaryMaterial = new THREE.MeshBasicMaterial({
   color: 0x0000ff,
@@ -29,7 +29,7 @@ const boundaryMaterial = new THREE.MeshBasicMaterial({
 const boundaryCube = new THREE.Mesh(boundaryGeometry, boundaryMaterial);
 scene.add(boundaryCube);
 
-// Configurar el piso con un tamaño fijo
+// Configurar el piso
 const floorSize = Math.max(size * 2, 1000);
 const floorGeometry = new THREE.PlaneGeometry(floorSize, floorSize);
 const floorMaterial = new THREE.MeshBasicMaterial({ color: '#ffffff', side: THREE.DoubleSide });
@@ -38,7 +38,7 @@ floor.rotation.x = -Math.PI / 2;
 floor.position.y = -halfSize;
 scene.add(floor);
 
-// Crear ejes de coordenadas visibles en una esquina del cubo
+// Crear ejes de coordenadas
 function createAxisLine(start, end, color) {
   const points = [start, end];
   const geometry = new THREE.BufferGeometry().setFromPoints(points);
@@ -46,8 +46,8 @@ function createAxisLine(start, end, color) {
   return new THREE.Line(geometry, material);
 }
 
-const axisLength = size * 1.5; // Longitud de los ejes (extendidos más allá del cubo)
-const offset = 2; // Distancia de separación desde la esquina del cubo
+const axisLength = size * 1.5;
+const offset = 2;
 
 const cornerX = -size / 2;
 const cornerY = -size / 2;
@@ -72,7 +72,7 @@ scene.add(axisX);
 scene.add(axisY);
 scene.add(axisZ);
 
-// Crear líneas discontinuas (dashed lines)
+// Crear líneas discontinuas
 const dashedMaterial = new THREE.LineDashedMaterial({
   color: 0xff0000,
   dashSize: 0.5,
@@ -83,9 +83,9 @@ const dashedMaterial = new THREE.LineDashedMaterial({
 function createDashedLine(start, end) {
   const points = [start, end];
   const geometry = new THREE.BufferGeometry().setFromPoints(points);
-  geometry.computeBoundingSphere(); // Necesario para LineDashedMaterial
+  geometry.computeBoundingSphere();
   const line = new THREE.LineSegments(geometry, dashedMaterial);
-  line.computeLineDistances(); // Necesario para LineDashedMaterial
+  line.computeLineDistances();
   return line;
 }
 
@@ -97,8 +97,8 @@ scene.add(dashedLine);
 const camera = new THREE.PerspectiveCamera(
   75,
   window.innerWidth / window.innerHeight,
-  0.1,   // Valor 'near' de la cámara
-  1000   // Valor 'far' de la cámara
+  0.1,
+  1000
 );
 camera.position.z = 5;
 
@@ -127,6 +127,14 @@ function toggleControls(event) {
   updateControls();
 }
 document.getElementById("toggleControlsButton").addEventListener("click", toggleControls);
+
+// Variables para el dibujo
+let isDrawing = false;
+let drawingEnabled = false;
+let startPoint = null;
+let endPoint = null;
+const lines = [];
+const texts = [];
 
 // Función para ajustar un valor a la grilla más cercana
 function snapToGrid(value, gridSize) {

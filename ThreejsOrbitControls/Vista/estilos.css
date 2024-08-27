@@ -2,7 +2,7 @@ body {
     margin: 0;
     overflow: hidden;
   }
-  #drawButton, #clearButton, #toggleControlsButton, #codeButton {
+  #drawButton, #clearButton, #toggleControlsButton, #codeButton, #toggleGrid1, #toggleGrid2 {
     position: absolute;
     padding: 10px 20px;
     color: white;
@@ -40,3 +40,4 @@ body {
     left: 20px;
     background-color: #17a2b8;
   }
+  

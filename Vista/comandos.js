@@ -1,5 +1,5 @@
-import * as THREE from "./three.module.js";
-import { OrbitControls } from "./OrbitControls.js";
+import * as THREE from "../ThreejsOrbitControls/three.module.js";
+import { OrbitControls } from "../ThreejsOrbitControls/OrbitControls.js";
 // Solicitar al usuario la dimensión del cubo
 const size = parseFloat(prompt("Ingrese el tamaño del cubo (en unidades):", "20")) || 20;
 const halfSize = size / 2;

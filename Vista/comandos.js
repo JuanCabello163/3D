@@ -20,7 +20,7 @@ scene.add(gridHelper);
 
 // Lista para guardar puntos de trazos existentes
 const existingPoints = [];
-const markers = []; // Añade esta variable para almacenar los puntos
+const markers = [];  // Asegúrate de que esta línea esté definida al principio
 
 // Crear el cubo de límites
 const boundarySize = size * 2; // Ajusta según sea necesario
@@ -196,6 +196,14 @@ function onMouseMove(event) {
   endPoint.x = Math.max(-halfSize, Math.min(halfSize, endPoint.x));
   endPoint.y = Math.max(-halfSize, Math.min(halfSize, endPoint.y));
   endPoint.z = Math.max(-halfSize, Math.min(halfSize, endPoint.z));
+
+  // Buscar el punto más cercano
+  const threshold = 0.5; // Ajusta según sea necesario
+  const closestPoint = findClosestPoint(endPoint, threshold);
+
+  if (closestPoint) {
+    endPoint.copy(closestPoint);
+  }
 
   // Actualizar el marcador
   if (marker) {

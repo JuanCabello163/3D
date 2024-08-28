@@ -3,103 +3,27 @@ import { OrbitControls } from "../OrbitControls.js";
 
 // Solicitar al usuario la dimensión del cubo
 const size = parseFloat(prompt("Ingrese el tamaño del cubo (en unidades):", "5")) || 20;
-<<<<<<< HEAD:ThreejsOrbitControls/Vista/comandos.js
 const halfSize = size ;
-=======
-const halfSize = size /2;
->>>>>>> 5840a3cb6cb40741c0a893b65f7739de1cbcba98:Vista/comandos.js
 
 // Crear la escena
 const scene = new THREE.Scene();
 scene.background = new THREE.Color('#b3deff');
 
 // Crear la grilla
-<<<<<<< HEAD:ThreejsOrbitControls/Vista/comandos.js
 const gridSize = size *2;
 const divisions = size *2;
-=======
-const gridSize = size +100;
-const divisions = size +100;
->>>>>>> 5840a3cb6cb40741c0a893b65f7739de1cbcba98:Vista/comandos.js
 const colorCenterLine = 0x000000;
 const colorGrid = '#e4e4e4';
 const gridHelper = new THREE.GridHelper(gridSize, divisions, colorCenterLine, colorGrid);
 gridHelper.position.y = -halfSize;
 scene.add(gridHelper);
 
-<<<<<<< HEAD:ThreejsOrbitControls/Vista/comandos.js
 // Lista para guardar puntos de trazos existentes
 const existingPoints = [];
 const markers = []; // Añade esta variable para almacenar los puntos
 
 // Crear el cubo de límites
 const boundarySize = size * 2; // Ajusta según sea necesario
-=======
-// Crear grillas adicionales dentro del cubo
-const smallGridSize = size; // Tamaño de cada grid adicional
-const smallGridSpacing = 1; // Espaciado entre las grillas adicionales
-
-// Crear grillas en el plano XZ (horizontal) en la parte inferior del cubo
-for (let x = -halfSize + smallGridSpacing / 2; x <= halfSize; x += smallGridSpacing) {
-    for (let z = -halfSize + smallGridSpacing / 2; z <= halfSize; z += smallGridSpacing) {
-        const smallGridHelperXZBottom = new THREE.GridHelper(smallGridSize, smallGridSize / smallGridSpacing, colorCenterLine, colorGrid);
-        smallGridHelperXZBottom.position.set(x, -halfSize, z); // parte inferior del cubo
-        smallGridHelperXZBottom.rotation.x = Math.PI / 2; // en el plano XZ
-        scene.add(smallGridHelperXZBottom);
-    }
-}
-
-// Crear grillas en el plano XZ (horizontal) en la parte superior del cubo
-for (let x = -halfSize + smallGridSpacing / 2; x <= halfSize; x += smallGridSpacing) {
-    for (let z = -halfSize + smallGridSpacing / 2; z <= halfSize; z += smallGridSpacing) {
-        const smallGridHelperXZTop = new THREE.GridHelper(smallGridSize, smallGridSize / smallGridSpacing, colorCenterLine, colorGrid);
-        smallGridHelperXZTop.position.set(x, halfSize, z); // parte superior del cubo
-        smallGridHelperXZTop.rotation.x = Math.PI / 2; // en el plano XZ
-        scene.add(smallGridHelperXZTop);
-    }
-}
-
-// Crear grillas en el plano YZ (lateral) en el lado izquierdo del cubo
-for (let y = -halfSize + smallGridSpacing / 2; y <= halfSize; y += smallGridSpacing) {
-    for (let z = -halfSize + smallGridSpacing / 2; z <= halfSize; z += smallGridSpacing) {
-        const smallGridHelperYZLeft = new THREE.GridHelper(smallGridSize, smallGridSize / smallGridSpacing, colorCenterLine, colorGrid);
-        smallGridHelperYZLeft.position.set(-halfSize, y, z); // lado izquierdo del cubo
-        smallGridHelperYZLeft.rotation.z = Math.PI / 2; // en el plano YZ
-        scene.add(smallGridHelperYZLeft);
-    }
-}
-
-// Crear grillas en el plano YZ (lateral) en el lado derecho del cubo
-for (let y = -halfSize + smallGridSpacing / 2; y <= halfSize; y += smallGridSpacing) {
-    for (let z = -halfSize + smallGridSpacing / 2; z <= halfSize; z += smallGridSpacing) {
-        const smallGridHelperYZRight = new THREE.GridHelper(smallGridSize, smallGridSize / smallGridSpacing, colorCenterLine, colorGrid);
-        smallGridHelperYZRight.position.set(halfSize, y, z); // lado derecho del cubo
-        smallGridHelperYZRight.rotation.z = Math.PI / 2; // en el plano YZ
-        scene.add(smallGridHelperYZRight);
-    }
-}
-
-// Crear grillas en el plano XY (frontal) en la parte trasera del cubo
-for (let x = -halfSize + smallGridSpacing / 2; x <= halfSize; x += smallGridSpacing) {
-    for (let y = -halfSize + smallGridSpacing / 2; y <= halfSize; y += smallGridSpacing) {
-        const smallGridHelperXYBack = new THREE.GridHelper(smallGridSize, smallGridSize / smallGridSpacing, colorCenterLine, colorGrid);
-        smallGridHelperXYBack.position.set(x, y, -halfSize); // parte trasera del cubo
-        scene.add(smallGridHelperXYBack);
-    }
-}
-
-// Crear grillas en el plano XY (frontal) en la parte delantera del cubo
-for (let x = -halfSize + smallGridSpacing / 2; x <= halfSize; x += smallGridSpacing) {
-    for (let y = -halfSize + smallGridSpacing / 2; y <= halfSize; y += smallGridSpacing) {
-        const smallGridHelperXYFront = new THREE.GridHelper(smallGridSize, smallGridSize / smallGridSpacing, colorCenterLine, colorGrid);
-        smallGridHelperXYFront.position.set(x, y, halfSize); // parte delantera del cubo
-        scene.add(smallGridHelperXYFront);
-    }
-}
-
-// Crear el cubo de límites
-const boundarySize = size; // Tamaño del cubo que rodea el cubo interior
->>>>>>> 5840a3cb6cb40741c0a893b65f7739de1cbcba98:Vista/comandos.js
 const boundaryGeometry = new THREE.BoxGeometry(boundarySize, boundarySize, boundarySize);
 const boundaryMaterial = new THREE.MeshBasicMaterial({
   color: 0x0000ff,
@@ -219,17 +143,6 @@ function snapVector3ToGrid(vector, gridSize) {
 
 const raycaster = new THREE.Raycaster();
 const mouse = new THREE.Vector2();
-const snapThreshold = 0.5; // Umbral para la proximidad a un punto existente
-// Función para comprobar si el punto está cerca de un marcador existente
-function isNearMarker(point) {
-  for (let marker of markers) {
-    const distance = point.distanceTo(marker.position);
-    if (distance < snapThreshold) {
-      return marker.position;
-    }
-  }
-  return null;
-}
 
 // Función para crear un marcador y agregarlo a la lista
 function createMarker(position) {
@@ -237,31 +150,22 @@ function createMarker(position) {
   const markerMaterial = new THREE.MeshBasicMaterial({ color: 0x0000ff });
   const markerMesh = new THREE.Mesh(markerGeometry, markerMaterial);
   markerMesh.position.copy(position);
-  scene.add(markerMesh);
-  markers.push(markerMesh); // Añadir el marcador a la lista
+  markers.push(markerMesh); // Guarda el marcador en la lista
   return markerMesh;
 }
 
-function clearMarkers() {
-  markers.forEach((marker) => {
+function clearMarker() {
+  if (marker) {
     scene.remove(marker);
     marker.geometry.dispose();
     marker.material.dispose();
-  });
-  markers.length = 0; // Limpiar la lista de marcadores
-}
-
-function createMarker(position) {
-  const markerGeometry = new THREE.SphereGeometry(0.1, 16, 16); // Tamaño y segmentos de la esfera
-  const markerMaterial = new THREE.MeshBasicMaterial({ color: 0x0000ff }); // Color del marcador
-  const markerMesh = new THREE.Mesh(markerGeometry, markerMaterial);
-  markerMesh.position.copy(position);
-  return markerMesh;
+    marker = null;
+  }
 }
 
 function onMouseDown(event) {
   if (!drawingEnabled) return;
-  clearMarkers(); // Eliminar el marcador existente
+  clearMarker(); // Eliminar el marcador existente
   isDrawing = true;
 
   // Calcular la posición del mouse en el espacio de la ventana y luego en el espacio 3D
@@ -281,8 +185,6 @@ function onMouseDown(event) {
 }
 let marker = null; // Variable para almacenar el marcador actual
 
-<<<<<<< HEAD:ThreejsOrbitControls/Vista/comandos.js
-// Función actualizada para mover el ratón y conectarlo a puntos existentes
 function onMouseMove(event) {
   if (!isDrawing || !drawingEnabled) return;
 
@@ -290,34 +192,20 @@ function onMouseMove(event) {
   endPoint = new THREE.Vector3(mousePos.x, mousePos.y, mousePos.z);
   snapVector3ToGrid(endPoint, 1);
 
-=======
-let marker = null; // Variable para almacenar el marcador actual
-
-function onMouseMove(event) {
-  if (!isDrawing || !drawingEnabled) return;
-
-  const { x, y, z } = getMousePosition(event.clientX, event.clientY);
-  endPoint = new THREE.Vector3(x, y, z);
-  snapVector3ToGrid(endPoint, 1);
-
-  // Asegúrate de que endPoint esté dentro del cubo
->>>>>>> 5840a3cb6cb40741c0a893b65f7739de1cbcba98:Vista/comandos.js
+  // Ajustar el punto final para estar dentro del área del cubo
   endPoint.x = Math.max(-halfSize, Math.min(halfSize, endPoint.x));
   endPoint.y = Math.max(-halfSize, Math.min(halfSize, endPoint.y));
   endPoint.z = Math.max(-halfSize, Math.min(halfSize, endPoint.z));
 
-<<<<<<< HEAD:ThreejsOrbitControls/Vista/comandos.js
-  const snappedPoint = isNearMarker(endPoint);
-  if (snappedPoint) {
-    endPoint.copy(snappedPoint);
-  }
-
+  // Actualizar el marcador
   if (marker) {
     marker.position.copy(endPoint);
   } else {
     marker = createMarker(endPoint);
+    scene.add(marker);
   }
 
+  // Crear o actualizar la línea temporal
   if (startPoint) {
     const lineMaterial = new THREE.LineBasicMaterial({ color: 0xff0000 });
     const points = [startPoint, endPoint];
@@ -327,36 +215,12 @@ function onMouseMove(event) {
     }
     temporaryLine = new THREE.Line(lineGeometry, lineMaterial);
     scene.add(temporaryLine);
-=======
-  if (lines.length > 0 && lines[lines.length - 1].isTemporary) {
-    scene.remove(lines.pop());
-  }
-
-  if (startPoint) {
-    const lineMaterial = new THREE.LineBasicMaterial({ color: 0xff0000 });
-    const points = [startPoint, endPoint];
-    const lineGeometry = new THREE.BufferGeometry().setFromPoints(points);
-    const line = new THREE.Line(lineGeometry, lineMaterial);
-    line.isTemporary = true;
-
-    scene.add(line);
-    lines.push(line);
-  }
-  // Actualizar o crear el marcador
-  if (marker) {
-    marker.position.copy(endPoint);
-  } else {
-    marker = createMarker(endPoint);
-    scene.add(marker);
->>>>>>> 5840a3cb6cb40741c0a893b65f7739de1cbcba98:Vista/comandos.js
   }
 }
-
 function onMouseUp(event) {
   if (isDrawing) {
     isDrawing = false;
 
-<<<<<<< HEAD:ThreejsOrbitControls/Vista/comandos.js
     if (temporaryLine) {
       scene.remove(temporaryLine);
       temporaryLine.geometry.dispose();
@@ -365,6 +229,7 @@ function onMouseUp(event) {
     }
 
     if (startPoint && endPoint) {
+      // Ajustar puntos al límite del cubo
       startPoint.x = Math.max(-halfSize, Math.min(halfSize, startPoint.x));
       startPoint.y = Math.max(-halfSize, Math.min(halfSize, startPoint.y));
       startPoint.z = Math.max(-halfSize, Math.min(halfSize, startPoint.z));
@@ -380,8 +245,9 @@ function onMouseUp(event) {
       scene.add(line);
       lines.push(line);
 
-      createMarker(startPoint);
-      createMarker(endPoint);
+      // Agregar los puntos a la lista de puntos existentes
+      existingPoints.push(startPoint.clone());
+      existingPoints.push(endPoint.clone());
 
       function createText(position, label) {
         const loader = new THREE.FontLoader();
@@ -407,52 +273,6 @@ function onMouseUp(event) {
       createText(endPoint, `${endPoint.x.toFixed(2)}, ${endPoint.y.toFixed(2)}, ${endPoint.z.toFixed(2)}`);
     }
 
-=======
-    // Verificar que startPoint y endPoint no sean null antes de usarlos
-    if (startPoint && endPoint) {
-      // Limitar los puntos al cubo
-      startPoint.x = Math.max(-halfSize, Math.min(halfSize, startPoint.x));
-      startPoint.y = Math.max(-halfSize, Math.min(halfSize, startPoint.y));
-      startPoint.z = Math.max(-halfSize, Math.min(halfSize, startPoint.z));
-      
-      endPoint.x = Math.max(-halfSize, Math.min(halfSize, endPoint.x));
-      endPoint.y = Math.max(-halfSize, Math.min(halfSize, endPoint.y));
-      endPoint.z = Math.max(-halfSize, Math.min(halfSize, endPoint.z));
-      
-      // Crear la línea final si está dentro del cubo
-      const lineMaterial = new THREE.LineBasicMaterial({ color: 0x000000 });
-      const points = [startPoint, endPoint];
-      const lineGeometry = new THREE.BufferGeometry().setFromPoints(points);
-      const line = new THREE.Line(lineGeometry, lineMaterial);
-      scene.add(line);
-      lines.push(line);
-      
-      // Crear texto en los puntos
-      function createText(position, label) {
-        const loader = new THREE.FontLoader();
-        loader.load(
-          "https://threejs.org/examples/fonts/helvetiker_regular.typeface.json",
-          (font) => {
-            const textGeometry = new THREE.TextGeometry(label, {
-              font: font,
-              size: 0.1,
-              height: 0.02,
-            });
-            const textMaterial = new THREE.MeshBasicMaterial({ color: '#000000' });
-            const textMesh = new THREE.Mesh(textGeometry, textMaterial);
-            textMesh.position.copy(position);
-            textMesh.lookAt(camera.position);
-            scene.add(textMesh);
-            texts.push(textMesh);
-          }
-        );
-      }
-
-      createText(startPoint, `(${startPoint.x.toFixed(2)}, ${startPoint.y.toFixed(2)}, ${startPoint.z.toFixed(2)})`);
-      createText(endPoint, `(${endPoint.x.toFixed(2)}, ${endPoint.y.toFixed(2)}, ${endPoint.z.toFixed(2)})`);
-    }
-
->>>>>>> 5840a3cb6cb40741c0a893b65f7739de1cbcba98:Vista/comandos.js
     drawingEnabled = false;
   }
 }
@@ -477,7 +297,6 @@ function getMousePosition(x, y) {
   mouse.y = - (y / window.innerHeight) * 2 + 1;
   raycaster.setFromCamera(mouse, camera);
 
-<<<<<<< HEAD:ThreejsOrbitControls/Vista/comandos.js
   // Intersectar el rayo con el plano de intersección
   const intersects = raycaster.intersectObject(intersectionPlane);
 
@@ -489,26 +308,22 @@ function getMousePosition(x, y) {
 }
 
 // Función para eliminar todos los trazos, textos y puntos
-=======
-  // Crear un plano que esté alineado con la superficie del cubo
-  const plane = new THREE.Plane(new THREE.Vector3(0, 0, 1), 0); // Plano paralelo al eje Z
-  const intersect = new THREE.Vector3();
-  raycaster.ray.intersectPlane(plane, intersect);
-
-  // Limitar las coordenadas al cubo
-  intersect.x = Math.max(-halfSize, Math.min(halfSize, intersect.x));
-  intersect.y = Math.max(-halfSize, Math.min(halfSize, intersect.y));
-  intersect.z = Math.max(-halfSize, Math.min(halfSize, intersect.z));
-  
-  return intersect;
-}
->>>>>>> 5840a3cb6cb40741c0a893b65f7739de1cbcba98:Vista/comandos.js
 function clearLines() {
+  // Eliminar líneas
   lines.forEach((line) => scene.remove(line));
-  texts.forEach((text) => scene.remove(text));
-  clearMarkers(); // Elimina los puntos
   lines.length = 0;
+
+  // Eliminar textos
+  texts.forEach((text) => scene.remove(text));
   texts.length = 0;
+
+  // Eliminar puntos
+  markers.forEach((marker) => {
+    scene.remove(marker);
+    marker.geometry.dispose();
+    marker.material.dispose();
+  });
+  markers.length = 0;
 }
 
 function enableDrawing() {
@@ -533,11 +348,7 @@ function drawLineFromCode() {
       end.z >= -halfSize && end.z <= halfSize
     ) {
       const lineMaterial = new THREE.LineBasicMaterial({ color: '#000000' });
-<<<<<<< HEAD:ThreejsOrbitControls/Vista/comandos.js
       const points = [start && end];
-=======
-      const points = [start, end];
->>>>>>> 5840a3cb6cb40741c0a893b65f7739de1cbcba98:Vista/comandos.js
       const lineGeometry = new THREE.BufferGeometry().setFromPoints(points);
       const line = new THREE.Line(lineGeometry, lineMaterial);
       scene.add(line);
@@ -563,13 +374,8 @@ function drawLineFromCode() {
         );
       }
 
-<<<<<<< HEAD:ThreejsOrbitControls/Vista/comandos.js
       createText(start, `${start.x.toFixed(2)}, ${start.y.toFixed(2)}, ${start.z.toFixed(2)}`);
       createText(end, `${end.x.toFixed(2)}, ${end.y.toFixed(2)}, ${end.z.toFixed(2)}`);
-=======
-      createText(start, `(${start.x.toFixed(2)}, ${start.y.toFixed(2)}, ${start.z.toFixed(2)})`);
-      createText(end, `(${end.x.toFixed(2)}, ${end.y.toFixed(2)}, ${end.z.toFixed(2)})`);
->>>>>>> 5840a3cb6cb40741c0a893b65f7739de1cbcba98:Vista/comandos.js
     } else {
       alert("Las coordenadas deben estar dentro del cubo.");
     }

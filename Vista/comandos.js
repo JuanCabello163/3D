@@ -2,24 +2,87 @@ import * as THREE from "../three.module.js";
 import { OrbitControls } from "../OrbitControls.js";
 
 // Solicitar al usuario la dimensión del cubo
-const size = parseFloat(prompt("Ingrese el tamaño del cubo (en unidades):", "20")) || 20;
-const halfSize = size / 2;
+const size = parseFloat(prompt("Ingrese el tamaño del cubo (en unidades):", "5")) || 20;
+const halfSize = size /2;
 
 // Crear la escena
 const scene = new THREE.Scene();
 scene.background = new THREE.Color('#b3deff');
 
 // Crear la grilla
-const gridSize = 50;
-const divisions = 50;
+const gridSize = size +100;
+const divisions = size +100;
 const colorCenterLine = 0x000000;
 const colorGrid = '#e4e4e4';
 const gridHelper = new THREE.GridHelper(gridSize, divisions, colorCenterLine, colorGrid);
 gridHelper.position.y = -halfSize;
 scene.add(gridHelper);
 
+// Crear grillas adicionales dentro del cubo
+const smallGridSize = size; // Tamaño de cada grid adicional
+const smallGridSpacing = 1; // Espaciado entre las grillas adicionales
+
+// Crear grillas en el plano XZ (horizontal) en la parte inferior del cubo
+for (let x = -halfSize + smallGridSpacing / 2; x <= halfSize; x += smallGridSpacing) {
+    for (let z = -halfSize + smallGridSpacing / 2; z <= halfSize; z += smallGridSpacing) {
+        const smallGridHelperXZBottom = new THREE.GridHelper(smallGridSize, smallGridSize / smallGridSpacing, colorCenterLine, colorGrid);
+        smallGridHelperXZBottom.position.set(x, -halfSize, z); // parte inferior del cubo
+        smallGridHelperXZBottom.rotation.x = Math.PI / 2; // en el plano XZ
+        scene.add(smallGridHelperXZBottom);
+    }
+}
+
+// Crear grillas en el plano XZ (horizontal) en la parte superior del cubo
+for (let x = -halfSize + smallGridSpacing / 2; x <= halfSize; x += smallGridSpacing) {
+    for (let z = -halfSize + smallGridSpacing / 2; z <= halfSize; z += smallGridSpacing) {
+        const smallGridHelperXZTop = new THREE.GridHelper(smallGridSize, smallGridSize / smallGridSpacing, colorCenterLine, colorGrid);
+        smallGridHelperXZTop.position.set(x, halfSize, z); // parte superior del cubo
+        smallGridHelperXZTop.rotation.x = Math.PI / 2; // en el plano XZ
+        scene.add(smallGridHelperXZTop);
+    }
+}
+
+// Crear grillas en el plano YZ (lateral) en el lado izquierdo del cubo
+for (let y = -halfSize + smallGridSpacing / 2; y <= halfSize; y += smallGridSpacing) {
+    for (let z = -halfSize + smallGridSpacing / 2; z <= halfSize; z += smallGridSpacing) {
+        const smallGridHelperYZLeft = new THREE.GridHelper(smallGridSize, smallGridSize / smallGridSpacing, colorCenterLine, colorGrid);
+        smallGridHelperYZLeft.position.set(-halfSize, y, z); // lado izquierdo del cubo
+        smallGridHelperYZLeft.rotation.z = Math.PI / 2; // en el plano YZ
+        scene.add(smallGridHelperYZLeft);
+    }
+}
+
+// Crear grillas en el plano YZ (lateral) en el lado derecho del cubo
+for (let y = -halfSize + smallGridSpacing / 2; y <= halfSize; y += smallGridSpacing) {
+    for (let z = -halfSize + smallGridSpacing / 2; z <= halfSize; z += smallGridSpacing) {
+        const smallGridHelperYZRight = new THREE.GridHelper(smallGridSize, smallGridSize / smallGridSpacing, colorCenterLine, colorGrid);
+        smallGridHelperYZRight.position.set(halfSize, y, z); // lado derecho del cubo
+        smallGridHelperYZRight.rotation.z = Math.PI / 2; // en el plano YZ
+        scene.add(smallGridHelperYZRight);
+    }
+}
+
+// Crear grillas en el plano XY (frontal) en la parte trasera del cubo
+for (let x = -halfSize + smallGridSpacing / 2; x <= halfSize; x += smallGridSpacing) {
+    for (let y = -halfSize + smallGridSpacing / 2; y <= halfSize; y += smallGridSpacing) {
+        const smallGridHelperXYBack = new THREE.GridHelper(smallGridSize, smallGridSize / smallGridSpacing, colorCenterLine, colorGrid);
+        smallGridHelperXYBack.position.set(x, y, -halfSize); // parte trasera del cubo
+        scene.add(smallGridHelperXYBack);
+    }
+}
+
+// Crear grillas en el plano XY (frontal) en la parte delantera del cubo
+for (let x = -halfSize + smallGridSpacing / 2; x <= halfSize; x += smallGridSpacing) {
+    for (let y = -halfSize + smallGridSpacing / 2; y <= halfSize; y += smallGridSpacing) {
+        const smallGridHelperXYFront = new THREE.GridHelper(smallGridSize, smallGridSize / smallGridSpacing, colorCenterLine, colorGrid);
+        smallGridHelperXYFront.position.set(x, y, halfSize); // parte delantera del cubo
+        scene.add(smallGridHelperXYFront);
+    }
+}
+
 // Crear el cubo de límites
-const boundaryGeometry = new THREE.BoxGeometry(size, size, size);
+const boundarySize = size; // Tamaño del cubo que rodea el cubo interior
+const boundaryGeometry = new THREE.BoxGeometry(boundarySize, boundarySize, boundarySize);
 const boundaryMaterial = new THREE.MeshBasicMaterial({
   color: 0x0000ff,
   wireframe: true,
@@ -28,77 +91,6 @@ const boundaryMaterial = new THREE.MeshBasicMaterial({
 });
 const boundaryCube = new THREE.Mesh(boundaryGeometry, boundaryMaterial);
 scene.add(boundaryCube);
-
-// Función para crear una grilla externa
-function createExternalGrid(size, divisions, colorCenterLine, colorGrid) {
-  const gridHelper = new THREE.GridHelper(size, divisions, colorCenterLine, colorGrid);
-  gridHelper.position.y = -halfSize;
-  return gridHelper;
-}
-
-/// Función para crear grillas internas
-function createInternalGrid(size, divisions, colorCenterLine, colorGrid, position, rotation) {
-  const gridHelper = new THREE.GridHelper(size, divisions, colorCenterLine, colorGrid);
-  gridHelper.position.copy(position);
-  gridHelper.rotation.copy(rotation);
-  return gridHelper;
-}
-
-// Crear grillas internas para cubrir el interior del cubo
-const internalGridSize = size;
-const internalGridDivisions = 10; // Ajusta según necesites
-
-// Crear grillas en diferentes posiciones y orientaciones
-const internalGrids = [];
-
-// Grillas en el plano XY
-const gridXY1 = createInternalGrid(internalGridSize, internalGridDivisions, 0x000000, '#cccccc', 
-  new THREE.Vector3(0, -size / 2, 0), new THREE.Euler(-Math.PI / 2, 0, 0));
-scene.add(gridXY1);
-internalGrids.push(gridXY1);
-
-const gridXY2 = createInternalGrid(internalGridSize, internalGridDivisions, 0x000000, '#cccccc', 
-  new THREE.Vector3(0, size / 2, 0), new THREE.Euler(-Math.PI / 2, 0, 0));
-scene.add(gridXY2);
-internalGrids.push(gridXY2);
-
-// Grillas en el plano XZ
-const gridXZ1 = createInternalGrid(internalGridSize, internalGridDivisions, 0x000000, '#cccccc', 
-  new THREE.Vector3(0, 0, -size / 2), new THREE.Euler(0, 0, 0));
-scene.add(gridXZ1);
-internalGrids.push(gridXZ1);
-
-const gridXZ2 = createInternalGrid(internalGridSize, internalGridDivisions, 0x000000, '#cccccc', 
-  new THREE.Vector3(0, 0, size / 2), new THREE.Euler(0, 0, 0));
-scene.add(gridXZ2);
-internalGrids.push(gridXZ2);
-
-// Grillas en el plano YZ
-const gridYZ1 = createInternalGrid(internalGridSize, internalGridDivisions, 0x000000, '#cccccc', 
-  new THREE.Vector3(-size / 2, 0, 0), new THREE.Euler(0, -Math.PI / 2, 0));
-scene.add(gridYZ1);
-internalGrids.push(gridYZ1);
-
-const gridYZ2 = createInternalGrid(internalGridSize, internalGridDivisions, 0x000000, '#cccccc', 
-  new THREE.Vector3(size / 2, 0, 0), new THREE.Euler(0, -Math.PI / 2, 0));
-scene.add(gridYZ2);
-internalGrids.push(gridYZ2);
-// Variable para controlar la visibilidad de las grillas internas
-let areInternalGridsVisible = true;
-
-// Función para alternar la visibilidad de las grillas internas
-function toggleInternalGridsVisibility() {
-  areInternalGridsVisible = !areInternalGridsVisible;
-  internalGrids.forEach(grid => grid.visible = areInternalGridsVisible);
-  document.getElementById("toggleInternalGridsButton").classList.toggle("active", areInternalGridsVisible);
-}
-
-// Agregar evento al botón de grillas internas
-document.getElementById("toggleInternalGridsButton").addEventListener("click", toggleInternalGridsVisibility);
-
-// Inicialmente se muestran las grillas internas
-internalGrids.forEach(grid => grid.visible = areInternalGridsVisible);
-document.getElementById("toggleInternalGridsButton").classList.toggle("active", areInternalGridsVisible);
 
 // Configurar el piso
 const floorSize = Math.max(size * 2, 1000);
@@ -142,27 +134,6 @@ const axisZ = createAxisLine(
 scene.add(axisX);
 scene.add(axisY);
 scene.add(axisZ);
-
-// Crear líneas discontinuas
-const dashedMaterial = new THREE.LineDashedMaterial({
-  color: 0xff0000,
-  dashSize: 0.5,
-  gapSize: 0.5,
-  linewidth: 2
-});
-
-function createDashedLine(start, end) {
-  const points = [start, end];
-  const geometry = new THREE.BufferGeometry().setFromPoints(points);
-  geometry.computeBoundingSphere();
-  const line = new THREE.LineSegments(geometry, dashedMaterial);
-  line.computeLineDistances();
-  return line;
-}
-
-// Ejemplo de línea discontinua
-const dashedLine = createDashedLine(new THREE.Vector3(-5, 0, 0), new THREE.Vector3(5, 0, 0));
-scene.add(dashedLine);
 
 // Añadir cámara
 const camera = new THREE.PerspectiveCamera(
@@ -221,6 +192,14 @@ function snapVector3ToGrid(vector, gridSize) {
 const raycaster = new THREE.Raycaster();
 const mouse = new THREE.Vector2();
 
+function createMarker(position) {
+  const markerGeometry = new THREE.SphereGeometry(0.1, 16, 16); // Tamaño y segmentos de la esfera
+  const markerMaterial = new THREE.MeshBasicMaterial({ color: 0x0000ff }); // Color del marcador
+  const markerMesh = new THREE.Mesh(markerGeometry, markerMaterial);
+  markerMesh.position.copy(position);
+  return markerMesh;
+}
+
 function onMouseDown(event) {
   if (!drawingEnabled) return;
   isDrawing = true;
@@ -234,54 +213,91 @@ function onMouseDown(event) {
   }
 }
 
+let marker = null; // Variable para almacenar el marcador actual
+
 function onMouseMove(event) {
   if (!isDrawing || !drawingEnabled) return;
-  
+
   const { x, y, z } = getMousePosition(event.clientX, event.clientY);
   endPoint = new THREE.Vector3(x, y, z);
   snapVector3ToGrid(endPoint, 1);
+
+  // Asegúrate de que endPoint esté dentro del cubo
+  endPoint.x = Math.max(-halfSize, Math.min(halfSize, endPoint.x));
+  endPoint.y = Math.max(-halfSize, Math.min(halfSize, endPoint.y));
+  endPoint.z = Math.max(-halfSize, Math.min(halfSize, endPoint.z));
 
   if (lines.length > 0 && lines[lines.length - 1].isTemporary) {
     scene.remove(lines.pop());
   }
 
-  const lineMaterial = new THREE.LineBasicMaterial({ color: 0xff0000 });
-  const points = [startPoint, endPoint];
-  const lineGeometry = new THREE.BufferGeometry().setFromPoints(points);
-  const line = new THREE.Line(lineGeometry, lineMaterial);
-  line.isTemporary = true;
+  if (startPoint) {
+    const lineMaterial = new THREE.LineBasicMaterial({ color: 0xff0000 });
+    const points = [startPoint, endPoint];
+    const lineGeometry = new THREE.BufferGeometry().setFromPoints(points);
+    const line = new THREE.Line(lineGeometry, lineMaterial);
+    line.isTemporary = true;
 
-  scene.add(line);
-  lines.push(line);
+    scene.add(line);
+    lines.push(line);
+  }
+  // Actualizar o crear el marcador
+  if (marker) {
+    marker.position.copy(endPoint);
+  } else {
+    marker = createMarker(endPoint);
+    scene.add(marker);
+  }
 }
 
 function onMouseUp(event) {
   if (isDrawing) {
     isDrawing = false;
-    if (lines.length > 0) {
-      lines[lines.length - 1].isTemporary = false;
+
+    // Verificar que startPoint y endPoint no sean null antes de usarlos
+    if (startPoint && endPoint) {
+      // Limitar los puntos al cubo
+      startPoint.x = Math.max(-halfSize, Math.min(halfSize, startPoint.x));
+      startPoint.y = Math.max(-halfSize, Math.min(halfSize, startPoint.y));
+      startPoint.z = Math.max(-halfSize, Math.min(halfSize, startPoint.z));
+      
+      endPoint.x = Math.max(-halfSize, Math.min(halfSize, endPoint.x));
+      endPoint.y = Math.max(-halfSize, Math.min(halfSize, endPoint.y));
+      endPoint.z = Math.max(-halfSize, Math.min(halfSize, endPoint.z));
+      
+      // Crear la línea final si está dentro del cubo
+      const lineMaterial = new THREE.LineBasicMaterial({ color: 0x000000 });
+      const points = [startPoint, endPoint];
+      const lineGeometry = new THREE.BufferGeometry().setFromPoints(points);
+      const line = new THREE.Line(lineGeometry, lineMaterial);
+      scene.add(line);
+      lines.push(line);
+      
+      // Crear texto en los puntos
+      function createText(position, label) {
+        const loader = new THREE.FontLoader();
+        loader.load(
+          "https://threejs.org/examples/fonts/helvetiker_regular.typeface.json",
+          (font) => {
+            const textGeometry = new THREE.TextGeometry(label, {
+              font: font,
+              size: 0.1,
+              height: 0.02,
+            });
+            const textMaterial = new THREE.MeshBasicMaterial({ color: '#000000' });
+            const textMesh = new THREE.Mesh(textGeometry, textMaterial);
+            textMesh.position.copy(position);
+            textMesh.lookAt(camera.position);
+            scene.add(textMesh);
+            texts.push(textMesh);
+          }
+        );
+      }
+
+      createText(startPoint, `(${startPoint.x.toFixed(2)}, ${startPoint.y.toFixed(2)}, ${startPoint.z.toFixed(2)})`);
+      createText(endPoint, `(${endPoint.x.toFixed(2)}, ${endPoint.y.toFixed(2)}, ${endPoint.z.toFixed(2)})`);
     }
-    function createText(position, label) {
-      const loader = new THREE.FontLoader();
-      loader.load(
-        "https://threejs.org/examples/fonts/helvetiker_regular.typeface.json",
-        (font) => {
-          const textGeometry = new THREE.TextGeometry(label, {
-            font: font,
-            size: 0.1,
-            height: 0.02,
-          });
-          const textMaterial = new THREE.MeshBasicMaterial({ color: '#000000' });
-          const textMesh = new THREE.Mesh(textGeometry, textMaterial);
-          textMesh.position.copy(position);
-          textMesh.lookAt(camera.position);
-          scene.add(textMesh);
-          texts.push(textMesh);
-        }
-      );
-    }
-    createText(startPoint, `(${startPoint.x.toFixed(2)}, ${startPoint.y.toFixed(2)}, ${startPoint.z.toFixed(2)})`);
-    createText(endPoint, `(${endPoint.x.toFixed(2)}, ${endPoint.y.toFixed(2)}, ${endPoint.z.toFixed(2)})`);
+
     drawingEnabled = false;
   }
 }
@@ -290,15 +306,19 @@ function getMousePosition(x, y) {
   mouse.x = (x / window.innerWidth) * 2 - 1;
   mouse.y = - (y / window.innerHeight) * 2 + 1;
   raycaster.setFromCamera(mouse, camera);
-  const planeZ = new THREE.Plane(new THREE.Vector3(0, 0, 1), 0);
+
+  // Crear un plano que esté alineado con la superficie del cubo
+  const plane = new THREE.Plane(new THREE.Vector3(0, 0, 1), 0); // Plano paralelo al eje Z
   const intersect = new THREE.Vector3();
-  raycaster.ray.intersectPlane(planeZ, intersect);
+  raycaster.ray.intersectPlane(plane, intersect);
+
+  // Limitar las coordenadas al cubo
   intersect.x = Math.max(-halfSize, Math.min(halfSize, intersect.x));
   intersect.y = Math.max(-halfSize, Math.min(halfSize, intersect.y));
   intersect.z = Math.max(-halfSize, Math.min(halfSize, intersect.z));
+  
   return intersect;
 }
-
 function clearLines() {
   lines.forEach((line) => scene.remove(line));
   texts.forEach((text) => scene.remove(text));
@@ -318,6 +338,7 @@ function drawLineFromCode() {
     const [x1, y1, z1, x2, y2, z2] = coords;
     const start = new THREE.Vector3(x1, y1, z1);
     const end = new THREE.Vector3(x2, y2, z2);
+
     if (
       start.x >= -halfSize && start.x <= halfSize &&
       start.y >= -halfSize && start.y <= halfSize &&
@@ -326,12 +347,13 @@ function drawLineFromCode() {
       end.y >= -halfSize && end.y <= halfSize &&
       end.z >= -halfSize && end.z <= halfSize
     ) {
-      const lineMaterial = new THREE.LineBasicMaterial({ color: '0xff0000' });
+      const lineMaterial = new THREE.LineBasicMaterial({ color: '#000000' });
       const points = [start, end];
       const lineGeometry = new THREE.BufferGeometry().setFromPoints(points);
       const line = new THREE.Line(lineGeometry, lineMaterial);
       scene.add(line);
       lines.push(line);
+
       function createText(position, label) {
         const loader = new THREE.FontLoader();
         loader.load(
@@ -342,7 +364,7 @@ function drawLineFromCode() {
               size: 0.1,
               height: 0.02,
             });
-            const textMaterial = new THREE.MeshBasicMaterial({ color: '#0xff0000' });
+            const textMaterial = new THREE.MeshBasicMaterial({ color: '#000000' });
             const textMesh = new THREE.Mesh(textGeometry, textMaterial);
             textMesh.position.copy(position);
             textMesh.lookAt(camera.position);
@@ -351,6 +373,7 @@ function drawLineFromCode() {
           }
         );
       }
+
       createText(start, `(${start.x.toFixed(2)}, ${start.y.toFixed(2)}, ${start.z.toFixed(2)})`);
       createText(end, `(${end.x.toFixed(2)}, ${end.y.toFixed(2)}, ${end.z.toFixed(2)})`);
     } else {
@@ -360,23 +383,6 @@ function drawLineFromCode() {
     alert("Ingrese las coordenadas en el formato correcto: x1,y1,z1,x2,y2,z2");
   }
 }
-
-// Variable para controlar la visibilidad de la grilla
-let isGridVisible = true;
-
-// Función para alternar la visibilidad de la grilla
-function toggleGridVisibility() {
-  isGridVisible = !isGridVisible;
-  gridHelper.visible = isGridVisible;
-  document.getElementById("toggleGridButton").classList.toggle("active", isGridVisible);
-}
-
-// Agregar evento al botón de grilla
-document.getElementById("toggleGridButton").addEventListener("click", toggleGridVisibility);
-
-// Inicialmente se muestra la grilla
-gridHelper.visible = isGridVisible;
-document.getElementById("toggleGridButton").classList.toggle("active", isGridVisible);
 
 renderer.domElement.addEventListener("mousedown", onMouseDown);
 renderer.domElement.addEventListener("mousemove", onMouseMove);

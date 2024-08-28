@@ -20,7 +20,7 @@ scene.add(gridHelper);
 
 // Lista para guardar puntos de trazos existentes
 const existingPoints = [];
-const markers = [];  // Asegúrate de que esta línea esté definida al principio
+const markers = [];
 
 // Crear el cubo de límites
 const boundarySize = size * 2; // Ajusta según sea necesario
@@ -121,14 +121,15 @@ function toggleControls(event) {
 }
 document.getElementById("toggleControlsButton").addEventListener("click", toggleControls);
 
-// Variables para el dibujo
+// Variables para el dibujo (declarar fuera de funciones)
 let isDrawing = false;
 let drawingEnabled = false;
-let startPoint = null;
+let startPoint = null; // Ahora es global
 let endPoint = null;
 const lines = [];
 const texts = [];
 let temporaryLine = null; // Variable para almacenar la línea temporal
+let marker = null; // Variable para almacenar el marcador actual
 
 // Función para ajustar un valor a la grilla más cercana
 function snapToGrid(value, gridSize) {
@@ -165,8 +166,6 @@ function clearMarker() {
 
 function onMouseDown(event) {
   if (!drawingEnabled) return;
-  clearMarker(); // Eliminar el marcador existente
-  isDrawing = true;
 
   // Calcular la posición del mouse en el espacio de la ventana y luego en el espacio 3D
   mouse.x = (event.clientX / window.innerWidth) * 2 - 1;
@@ -177,13 +176,33 @@ function onMouseDown(event) {
   const intersects = raycaster.intersectObject(intersectionPlane);
 
   if (intersects.length > 0) {
-    startPoint = intersects[0].point.clone(); // Clonar para asegurar que obtenemos una copia exacta
-    console.log("Start Point Set: ", startPoint);
+    startPoint = intersects[0].point.clone(); // Usar la variable global
+
+    // Ajustar el punto al grid más cercano
+    snapVector3ToGrid(startPoint, 1);
+
+    // Asegurarse de que el punto esté dentro del área del cubo
+    startPoint.x = Math.max(-halfSize, Math.min(halfSize, startPoint.x));
+    startPoint.y = Math.max(-halfSize, Math.min(halfSize, startPoint.y));
+    startPoint.z = Math.max(-halfSize, Math.min(halfSize, startPoint.z));
+
+    // Actualizar el marcador y la línea temporal
+    clearMarker(); // Eliminar el marcador existente
+    marker = createMarker(startPoint);
+    scene.add(marker);
+
+    if (temporaryLine) {
+      scene.remove(temporaryLine);
+      temporaryLine.geometry.dispose();
+      temporaryLine.material.dispose();
+    }
+    temporaryLine = null;
+
+    isDrawing = true;
   } else {
     isDrawing = false; // Si no hay intersección, deshabilitamos el dibujo
   }
 }
-let marker = null; // Variable para almacenar el marcador actual
 
 function onMouseMove(event) {
   if (!isDrawing || !drawingEnabled) return;
@@ -325,13 +344,26 @@ function clearLines() {
   texts.forEach((text) => scene.remove(text));
   texts.length = 0;
 
-  // Eliminar puntos
+  // Eliminar puntos (marcadores)
   markers.forEach((marker) => {
     scene.remove(marker);
     marker.geometry.dispose();
     marker.material.dispose();
   });
   markers.length = 0;
+
+  // Eliminar puntos existentes
+  existingPoints.forEach((point) => {
+    // Si estás usando marcadores visuales para puntos existentes
+    const markerToRemove = markers.find(marker => marker.position.equals(point));
+    if (markerToRemove) {
+      scene.remove(markerToRemove);
+      markerToRemove.geometry.dispose();
+      markerToRemove.material.dispose();
+      markers = markers.filter(marker => marker !== markerToRemove);
+    }
+  });
+  existingPoints.length = 0; // Limpiar el array de puntos existentes
 }
 
 function enableDrawing() {

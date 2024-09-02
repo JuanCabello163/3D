@@ -1,0 +1,22 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Three.js Line Drawing</title>
+  <link rel="stylesheet" href="Vista/estilos.css">
+</head>
+<body>
+  <header>
+    <button id="drawButton">Dibujar Línea</button>
+    <button id="clearButton">Borrar líneas</button>
+    <button id="toggleControlsButton">Activar Controles</button>
+    <input type="text" id="codeInput" placeholder="x1,y1,z1,x2,y2,z2" />
+    <button id="codeButton">Dibujar Línea con Código</button>
+    <input type="range" id="yLevelSlider" min="-10" max="10" value="0" step="1" />
+    <div id="sliderValue">Nivel Y: 0</div>
+    <button id="connectPointsButton">Conectar Puntos</button>
+  </header>
+  <script type="module" src="Vista/comandos.js"></script>
+</body>
+</html>

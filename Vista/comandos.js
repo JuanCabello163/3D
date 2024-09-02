@@ -157,6 +157,7 @@ const lines = [];
 const texts = [];
 let temporaryLine = null; // Variable para almacenar la línea temporal
 let marker = null; // Variable para almacenar el marcador actual
+const connectedLines = []; // Lista para almacenar las líneas creadas con "Conectar Puntos"
 
 // Función para ajustar un valor a la grilla más cercana
 function snapToGrid(value, gridSize) {
@@ -235,6 +236,8 @@ window.addEventListener('click', (event) => {
           const material = new THREE.LineBasicMaterial({ color: 0x0000ff });
           const line = new THREE.Line(geometry, material);
           scene.add(line);
+          // Guardar la línea en la lista de líneas conectadas
+          connectedLines.push(line);
 
           // Reiniciar selección y volver a estado inicial
           selectedPoints = [];
@@ -470,33 +473,48 @@ function getMousePosition(x, y) {
 // Función para eliminar todos los trazos, textos y puntos
 function clearLines() {
   // Eliminar líneas
-  lines.forEach((line) => scene.remove(line));
-  lines.length = 0;
+  lines.forEach((line) => {
+    scene.remove(line);
+    line.geometry.dispose(); // Liberar recursos de geometría
+    line.material.dispose(); // Liberar recursos de material
+  });
+  lines.length = 0; // Limpiar la lista de líneas
 
   // Eliminar textos
-  texts.forEach((text) => scene.remove(text));
-  texts.length = 0;
+  texts.forEach((text) => {
+    scene.remove(text);
+    text.geometry.dispose(); // Liberar recursos de geometría
+    text.material.dispose(); // Liberar recursos de material
+  });
+  texts.length = 0; // Limpiar la lista de textos
 
   // Eliminar puntos (marcadores)
   markers.forEach((marker) => {
     scene.remove(marker);
-    marker.geometry.dispose();
-    marker.material.dispose();
+    marker.geometry.dispose(); // Liberar recursos de geometría
+    marker.material.dispose(); // Liberar recursos de material
   });
-  markers.length = 0;
+  markers.length = 0; // Limpiar la lista de marcadores
 
   // Eliminar puntos existentes
   existingPoints.forEach((point) => {
-    // Si estás usando marcadores visuales para puntos existentes
-    const markerToRemove = markers.find(marker => marker.position.equals(point));
-    if (markerToRemove) {
-      scene.remove(markerToRemove);
-      markerToRemove.geometry.dispose();
-      markerToRemove.material.dispose();
-      markers = markers.filter(marker => marker !== markerToRemove);
+    if (point instanceof THREE.Mesh) { // Verificar si es un mesh
+      scene.remove(point);
+      point.geometry.dispose(); // Liberar recursos de geometría
+      point.material.dispose(); // Liberar recursos de material
     }
   });
-  existingPoints.length = 0; // Limpiar el array de puntos existentes
+  existingPoints.length = 0; // Limpiar la lista de puntos existentes
+  // Eliminar líneas conectadas
+  connectedLines.forEach((line) => {
+    scene.remove(line);
+    line.geometry.dispose(); // Liberar recursos de geometría
+    line.material.dispose(); // Liberar recursos de material
+  });
+  connectedLines.length = 0; // Limpiar la lista de líneas conectadas
+
+  // Asegurar que todos los recursos estén liberados y las listas estén vacías
+  console.log("Líneas, textos, marcadores y puntos eliminados.");
 }
 
 function enableDrawing() {

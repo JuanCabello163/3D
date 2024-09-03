@@ -424,9 +424,9 @@ function onMouseUp(event) {
     }
 
     drawingEnabled = false;
+    resetButtonColor(); // Cambia el color del botón de vuelta a azul
   }
 }
-
 // Nueva función para crear un mesh para cada punto
 function createPointMesh(position) {
   const geometry = new THREE.SphereGeometry(0.1, 32, 32); // Tamaño y detalle de la esfera
@@ -439,6 +439,13 @@ function createPointMesh(position) {
   existingPoints.push(pointMesh);
 }
 
+function enableDrawing() {
+  drawingEnabled = true;
+  document.getElementById("drawButton").style.backgroundColor = "#28a745";
+}
+function resetButtonColor() {
+  document.getElementById("drawButton").style.backgroundColor = "#007bff"; // Azul por defecto
+}
 
 function findClosestPoint(point, threshold) {
   let closestPoint = null;
@@ -512,15 +519,8 @@ function clearLines() {
     line.material.dispose(); // Liberar recursos de material
   });
   connectedLines.length = 0; // Limpiar la lista de líneas conectadas
-
-  // Asegurar que todos los recursos estén liberados y las listas estén vacías
-  console.log("Líneas, textos, marcadores y puntos eliminados.");
 }
 
-function enableDrawing() {
-  drawingEnabled = true;
-  document.getElementById("drawButton").style.backgroundColor = "#28a745";
-}
 
 function drawLineFromCode() {
   const input = document.getElementById("codeInput").value;

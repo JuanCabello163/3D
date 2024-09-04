@@ -2,7 +2,7 @@ body {
   margin: 0;
   overflow: hidden;
 }
-#drawButton, #clearButton, #toggleControlsButton, #codeButton, #toggleGridButton, #yLevelSlider, #sliderValue,#connectPointsButton{
+#drawButton, #clearButton, #toggleControlsButton, #codeButton, #yLevelSlider, #sliderValue, #connectPointsButton, #toggleGridButton, #controls{
   position: absolute;
   padding: 10px 20px;
   color: white;
@@ -10,6 +10,16 @@ body {
   cursor: pointer;
   font-size: 16px;
   z-index: 10;
+}
+#controls {  
+  top: 220px; 
+  left: 20px;  
+  background-color: #ff0000;
+}
+#toggleGridButton{
+  top: 180px;
+  left: 20px;
+  background-color: #ff0000;
 }
 #connectPointsButton{
   top: 140px;
@@ -24,6 +34,7 @@ body {
   background-color: #007bff;
   cursor: pointer;
 }
+
 #yLevelSlider {
   top: 60px;
   left: 200px;

@@ -11,10 +11,19 @@
   <button id="clearButton">Borrar Líneas</button>
   <button id="toggleControlsButton">Activar Controles</button>
   <input type="text" id="codeInput" placeholder="x1,y1,z1,x2,y2,z2" />
-  <button id="codeButton">Dibujar Línea con Código</button>
+  <button id="codeButton">Dibujar Línea con Código</button> 
   <input type="range" id="yLevelSlider" min="-5" max="10" value="0" step="1" />
   <button id="connectPointsButton">Conectar Puntos</button>
   <div id="sliderValue">Nivel Y: 0</div>
+  <button id="toggleGridButton">Mostrar/Ocultar Grillas</button>
+  <!-- Contenedor para el canvas de Three.js -->
+  <div id="container"></div>
+  
+  <!-- Controles -->
+  <div id="controls">
+    <button id="selectMaterialButton">Seleccionar Material</button>
+    <button id="createSurfaceButton">Crear Superficie</button>
+  </div>
   <script type="module" src="Vista/comandos.js"></script>
 </body>
 </html>

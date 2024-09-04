@@ -310,12 +310,12 @@ window.addEventListener('click', (event) => {
       }
   }
 });
-
+// Inicialización de variables
+let selectedSurfacePoints = [];
 let creatingSurface = false;  // Estado para controlar la creación de superficies
 let surfacePoints = [];  // Array para almacenar los puntos seleccionados para la superficie
 let selectedMaterial = new THREE.MeshBasicMaterial({ color: 0x0000ff });  // Material por defecto
 
-// Evento de clic para el botón "Crear Superficie"
 // Evento de clic para el botón "Crear superficie"
 createSurfaceButton.addEventListener('click', () => {
   creatingSurface = !creatingSurface;  // Cambiar el estado al presionar el botón
@@ -337,38 +337,42 @@ createSurfaceButton.addEventListener('click', () => {
           }
       });
       surfacePoints = [];  // Reiniciar la lista de puntos seleccionados
+      // Llamar a la función de creación de superficie con los puntos seleccionados
+      createSurfaceFromPoints(selectedSurfacePoints);
   }
 });
+
 // Evento de clic para seleccionar puntos al crear una superficie
 renderer.domElement.addEventListener('click', (event) => {
   if (creatingSurface) {
       const mouse = new THREE.Vector2(
-          (event.clientX / window.innerWidth) * 2 - 0.5,
-          -(event.clientY / window.innerHeight) * 2 + 0.5
+          (event.clientX / window.innerWidth) * 2 - 1,
+          - (event.clientY / window.innerHeight) * 2 + 1
       );
 
       raycaster.setFromCamera(mouse, camera);
       const intersects = raycaster.intersectObjects(existingPoints);
 
-      console.log('Intersects:', intersects); // Verifica si hay intersecciones
+      console.log('Intersects:', intersects);
 
       if (intersects.length > 0) {
           const selectedPoint = intersects[0].object;
-          console.log('Selected Point:', selectedPoint); // Verifica el punto seleccionado
+          console.log('Selected Point:', selectedPoint);
 
           if (!selectedSurfacePoints.includes(selectedPoint)) {
               selectedSurfacePoints.push(selectedPoint);
-              console.log('Changing color of point:', selectedPoint); // Verifica si se está cambiando el color
+              console.log('Changing color of point:', selectedPoint);
 
-              selectedPoint.material.color.set(0x00ff00);  // Cambia el color a verde
+              selectedPoint.material.color.set(0x00ff00);
           } else {
-              console.log('Point already selected:', selectedPoint); // Verifica si el punto ya está en la lista
+              console.log('Point already selected:', selectedPoint);
           }
       } else {
-          console.log('No point intersected'); // Verifica si no hay puntos intersectados
+          console.log('No point intersected');
       }
   }
 });
+
 // Maneja la selección de puntos
 function onMouseClick(event) {
   if (creatingSurface) {
@@ -389,27 +393,42 @@ function onMouseClick(event) {
     }
   }
 }
+
+// Función para crear una superficie a partir de los puntos seleccionados
 function createSurfaceFromPoints(points) {
-  if (points.length < 3) {
+  if (!points || points.length < 3) {
     alert('Necesitas al menos 3 puntos para crear una superficie.');
     return;
   }
 
-  // Extrae las coordenadas de los puntos seleccionados
-  const geometry = new THREE.Geometry();
+  // Crear una geometría de superficie usando BufferGeometry
+  const geometry = new THREE.BufferGeometry();
+  
+  // Crear un array de posiciones
+  const positions = [];
+  
+  // Llenar el array de posiciones con las coordenadas de los puntos seleccionados
   points.forEach(point => {
-    geometry.vertices.push(point.position);
+    positions.push(point.position.x, point.position.y, point.position.z);
   });
 
-  // Crea la superficie (esto es una simplificación, puedes necesitar un algoritmo más complejo para crear una malla)
-  geometry.faces.push(new THREE.Face3(0, 1, 2));  // Asumiendo que tienes al menos 3 puntos, ajusta según sea necesario
+  // Verificar la longitud de las posiciones
+  console.log('Positions:', positions);
 
-  geometry.computeFaceNormals();
-  geometry.computeVertexNormals();
+  // Asignar las posiciones a la geometría
+  geometry.setAttribute('position', new THREE.Float32BufferAttribute(positions, 3));
+
+  // Crear una malla para la superficie (aquí asumimos una sola cara para simplificar)
+  if (points.length >= 3) {
+    const indices = [0, 1, 2];  // Asumiendo los primeros 3 puntos
+    geometry.setIndex(indices);
+    geometry.computeVertexNormals();
+  }
 
   const mesh = new THREE.Mesh(geometry, selectedMaterial);
   scene.add(mesh);
 }
+
 // Evento de clic para el botón "Seleccionar Material"
 selectMaterialButton.addEventListener('click', () => {
   // Puedes implementar un método para seleccionar el material, por ejemplo, un prompt para el color
@@ -761,6 +780,9 @@ renderer.domElement.addEventListener("mouseup", onMouseUp);
 document.getElementById("drawButton").addEventListener("click", enableDrawing);
 document.getElementById("clearButton").addEventListener("click", clearLines);
 document.getElementById("codeButton").addEventListener("click", drawLineFromCode);
+document.getElementById('createSurfaceButton').addEventListener('click', () => {
+  createSurfaceFromPoints();
+});
 
 window.addEventListener('resize', () => {
   camera.aspect = window.innerWidth / window.innerHeight;

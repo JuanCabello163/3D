@@ -17,8 +17,17 @@ const divisions = size *2;
 const colorCenterLine = 0x000000;
 const colorGrid = '#e4e4e4';
 const gridHelper = new THREE.GridHelper(gridSize, divisions, colorCenterLine, colorGrid);
-gridHelper.position.y = -halfSize;
+gridHelper.position.y = 0;
 scene.add(gridHelper);
+//Grilla de piso
+const gridSize_1 = size *20;
+const divisions_1 = size *20;
+const colorGrid_1 = '#e4e4e4';
+const colorCenterLine_1 = 0x000000;
+const gridHelper_1 = new THREE.GridHelper(gridSize_1, divisions_1,colorCenterLine_1, colorGrid_1);
+gridHelper_1.position.y = 0;
+scene.add(gridHelper_1);
+
 
 // Lista para guardar puntos de trazos existentes
 const existingPoints = [];
@@ -47,7 +56,7 @@ const sliderValue = document.getElementById('sliderValue');
 // Función para actualizar el rango del slider
 function updateSliderRange(newSize) {
   const newHalfSize = newSize; // Usa el tamaño completo del cubo
-  yLevelSlider.min = -newHalfSize;
+  yLevelSlider.min = 0;
   yLevelSlider.max = newHalfSize;
   yLevelSlider.value = 0; // Valor inicial del slider
   updateGridAndDrawingPlane(parseFloat(yLevelSlider.value)); // Asegúrate de que el plano y la grilla se actualicen
@@ -76,7 +85,7 @@ const floorGeometry = new THREE.PlaneGeometry(floorSize, floorSize);
 const floorMaterial = new THREE.MeshBasicMaterial({ color: '#ffffff', side: THREE.DoubleSide });
 const floor = new THREE.Mesh(floorGeometry, floorMaterial);
 floor.rotation.x = -Math.PI / 2;
-floor.position.y = -halfSize;
+floor.position.y = 0;
 scene.add(floor);
 
 // Crear ejes de coordenadas
@@ -91,7 +100,7 @@ const axisLength = size * 1.5;
 const offset = 2;
 
 const cornerX = -size ;
-const cornerY = -size ;
+const cornerY = 0 ;
 const cornerZ = -size ;
 
 const axisX = createAxisLine(
@@ -121,6 +130,7 @@ const camera = new THREE.PerspectiveCamera(
   1000
 );
 camera.position.z = 5;
+camera.position.y = 2;
 
 // Renderer
 const renderer = new THREE.WebGLRenderer({ antialias: true });
@@ -135,6 +145,15 @@ controls.enableDamping = true;
 controls.dampingFactor = 0.5;
 controls.maxPolarAngle = Math.PI;
 controls.screenSpacePanning = true;
+function limitCameraPosition() {
+  if (camera.position.y < 1) {
+      camera.position.y = 1;  // Limita la cámara para que no baje de Y=0
+  }
+}
+
+// Si estás utilizando OrbitControls, puedes agregar un evento para limitar la cámara:
+controls.addEventListener('change', limitCameraPosition);
+
 
 let areControlsEnabled = false;
 function updateControls() {
@@ -278,6 +297,8 @@ function onMouseDown(event) {
 
   // Obtener el valor del slider para Y
   const sliderYValue = parseFloat(document.getElementById('yLevelSlider').value);
+    // Asegurar que el valor Y sea positivo
+    if (sliderYValue < 0) return;
 
   // Calcular la posición del mouse en el espacio de la ventana y luego en el espacio 3D
   mouse.x = (event.clientX / window.innerWidth) * 2 - 1;
@@ -293,8 +314,8 @@ function onMouseDown(event) {
     // Ajustar el punto al grid más cercano
     snapVector3ToGrid(startPoint, 1);
 
-    // Asegurar que Y sea el del slider
-    startPoint.y = sliderYValue;
+    // Asegurar que Y sea el del slider y positivo
+    startPoint.y = Math.max(sliderYValue, 0);
 
     // Ajustar el punto dentro del área del cubo
     startPoint.x = Math.max(-halfSize, Math.min(halfSize, startPoint.x));
@@ -327,6 +348,8 @@ function onMouseMove(event) {
 
   // Obtener el valor del slider para Y
   const sliderYValue = parseFloat(document.getElementById('yLevelSlider').value);
+  // Asegurar que Y sea positivo
+  endPoint.y = Math.max(sliderYValue, 0);
 
   // Ajustar el punto final para estar dentro del área del cubo y en el nivel Y del slider
   endPoint.x = Math.max(-halfSize, Math.min(halfSize, endPoint.x));

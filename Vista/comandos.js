@@ -27,6 +27,40 @@ const colorCenterLine_1 = 0x000000;
 const gridHelper_1 = new THREE.GridHelper(gridSize_1, divisions_1,colorCenterLine_1, colorGrid_1);
 gridHelper_1.position.y = 0;
 scene.add(gridHelper_1);
+//Grilla interna
+// Función para crear una grilla en 3D
+function create3DGrid(size, divisions, color) {
+  const material = new THREE.LineBasicMaterial({ color: color });
+  const gridPoints = [];
+  const step = size / divisions;
+
+  // Crear líneas en el plano XY
+  for (let i = -size / 2; i <= size / 2; i += step) {
+      for (let j = -size / 2; j <= size / 2; j += step) {
+          gridPoints.push(new THREE.Vector3(-size / 2, i, j));
+          gridPoints.push(new THREE.Vector3(size / 2, i, j));
+
+          gridPoints.push(new THREE.Vector3(i, -size / 2, j));
+          gridPoints.push(new THREE.Vector3(i, size / 2, j));
+
+          gridPoints.push(new THREE.Vector3(i, j, -size / 2));
+          gridPoints.push(new THREE.Vector3(i, j, size / 2));
+      }
+  }
+
+  const geometry = new THREE.BufferGeometry().setFromPoints(gridPoints);
+  const grid = new THREE.LineSegments(geometry, material);
+
+  return grid;
+}
+
+// Crear la grilla 3D dentro del cubo
+const gridSize_3 = size * 2; // Asegúrate de ajustar el tamaño según tu cubo
+const divisions_3 = size * 2;
+const colorGrid_3 = '#e4e4e4';
+const grid3D = create3DGrid(gridSize_3, divisions_3, colorGrid_3);
+
+scene.add(grid3D);
 
 
 // Lista para guardar puntos de trazos existentes
@@ -37,7 +71,7 @@ const boundaryMaterial = new THREE.MeshBasicMaterial({
   color: 0x0000ff,
   wireframe: true,
   transparent: true,
-  opacity: 0.2,
+  opacity: 0,
 });
 const boundaryCube = new THREE.Mesh(boundaryGeometry, boundaryMaterial);
 scene.add(boundaryCube);
@@ -101,7 +135,7 @@ const offset = 2;
 
 const cornerX = -size ;
 const cornerY = 0 ;
-const cornerZ = -size ;
+const cornerZ =   -size ;
 
 const axisX = createAxisLine(
   new THREE.Vector3(cornerX - offset, cornerY, cornerZ),
